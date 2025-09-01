@@ -30,159 +30,172 @@ export default function CurriculumHomePage({
   return (
     <div className="flex-grow flex flex-col p-6 space-y-8 w-full max-w-6xl mx-auto">
       {/* Hero Section */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <BookOpen size={64} className="text-primary" />
-          <Sparkles size={32} className="text-accent" />
+      <div className="text-center space-y-6">
+        <div className="flex items-center justify-center gap-4 mb-8">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blueberry-100 to-blueberry-200 dark:from-blueberry-900 dark:to-blueberry-800 flex items-center justify-center shadow-lg">
+            <BookOpen size={48} className="text-blueberry-600 dark:text-blueberry-400" />
+          </div>
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blueberry-400 to-blueberry-600 flex items-center justify-center animate-pulse">
+            <Sparkles size={24} className="text-white" />
+          </div>
         </div>
-        <h1 className="text-4xl font-bold tracking-tight text-primary">
-          AI-Powered Curriculum Designer
-        </h1>
-        <p className="text-xl text-muted-foreground mx-auto">
-          Transform your teaching with engaging lesson plans designed specifically for Indian higher education. 
-          Create interactive experiences that make students excited about learning.
-        </p>
+        
+        <div className="space-y-4">
+          <h1 className="heading-2 bg-gradient-to-r from-blueberry-600 to-blueberry-700 bg-clip-text text-transparent dark:from-blueberry-400 dark:to-blueberry-500">
+            AI-Powered Curriculum Designer
+          </h1>
+          <p className="heading-4 text-neutral-600 dark:text-neutral-400 max-w-4xl mx-auto font-normal leading-relaxed">
+            Transform your teaching with engaging lesson plans designed specifically for Indian higher education. 
+            Create interactive experiences that make students excited about learning.
+          </p>
+        </div>
       </div>
 
       {/* Action Cards */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-8">
         {/* Generate New Curriculum */}
-        <Card className="relative overflow-hidden hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Sparkles className="text-primary" size={24} />
+        <Card variant="feature" className="group hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+          <CardHeader compact={false}>
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-blueberry-500 to-blueberry-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <Sparkles className="text-white" size={28} />
               </div>
-              <div>
-                <CardTitle className="text-xl">Generate New Lesson Plan</CardTitle>
-                <CardDescription>
+              <div className="flex-1">
+                <CardTitle gradient>Generate New Lesson Plan</CardTitle>
+                <CardDescription className="body-text text-neutral-600 dark:text-neutral-400 mt-2">
                   Create a custom curriculum suggestion using AI
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Enter your lesson topic, subject, and class details to get personalized suggestions for:
-            </p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex items-center gap-2">
-                <Target size={12} className="text-primary" />
-                <span>Engaging structure</span>
+          <CardContent>
+            <div className="space-y-6">
+              <p className="body-text text-neutral-700 dark:text-neutral-300">
+                Enter your lesson topic, subject, and class details to get personalized suggestions for:
+              </p>
+              
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  'Engaging structure',
+                  'Opening experiments', 
+                  'Curiosity questions',
+                  'Learning resources'
+                ].map((feature, index) => (
+                  <div key={index} className="flex items-center gap-3 p-3 bg-blueberry-25 dark:bg-blueberry-950 rounded-lg">
+                    <div className="w-6 h-6 rounded-full bg-blueberry-500 flex items-center justify-center">
+                      <Target size={14} className="text-white" />
+                    </div>
+                    <span className="body-text text-neutral-700 dark:text-neutral-300 font-medium">{feature}</span>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-center gap-2">
-                <Target size={12} className="text-primary" />
-                <span>Opening experiments</span>
+              
+              <div className="space-y-3 pt-4">
+                <Button 
+                  onClick={onGenerateNew} 
+                  variant="gradient"
+                  size="lg"
+                  className="w-full"
+                >
+                  <Sparkles className="mr-2 h-5 w-5" />
+                  Start Creating
+                </Button>
+                <Button 
+                  onClick={onViewHistory}
+                  variant="outline" 
+                  size="lg"
+                  className="w-full border-blueberry-300 text-blueberry-700 hover:bg-blueberry-50 dark:border-blueberry-600 dark:text-blueberry-300 dark:hover:bg-blueberry-950"
+                >
+                  <History className="mr-2 h-5 w-5" />
+                  View History
+                </Button>
               </div>
-              <div className="flex items-center gap-2">
-                <Target size={12} className="text-primary" />
-                <span>Curiosity questions</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Target size={12} className="text-primary" />
-                <span>Learning resources</span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Button 
-                onClick={onGenerateNew} 
-                className="w-full bg-primary hover:bg-primary/90"
-              >
-                <Sparkles className="mr-2 h-4 w-4" />
-                Start Creating
-              </Button>
-              <Button 
-                onClick={onViewHistory}
-                variant="outline" 
-                className="w-full"
-              >
-                <History className="mr-2 h-4 w-4" />
-                View History
-              </Button>
             </div>
           </CardContent>
         </Card>
 
         {/* View Examples */}
-        <Card className="relative overflow-hidden hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-accent/10 rounded-lg">
-                <Eye className="text-accent" size={24} />
+        <Card variant="elevated" className="group hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+          <CardHeader compact={false}>
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-success-500 to-success-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <Eye className="text-white" size={28} />
               </div>
-              <div>
-                <CardTitle className="text-xl">Explore Example Lessons</CardTitle>
-                <CardDescription>
+              <div className="flex-1">
+                <CardTitle className="text-success-700 dark:text-success-400">Explore Example Lessons</CardTitle>
+                <CardDescription className="body-text text-neutral-600 dark:text-neutral-400 mt-2">
                   See pre-built curriculum suggestions in action
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Browse through example lesson plans to see the quality and depth of AI-generated suggestions:
-            </p>
-            
-            <div className="space-y-3">
-              {/* Physics Example */}
-              <div className="p-3 border rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <h4 className="font-medium text-sm">Physics: Momentum & Impact</h4>
-                    <p className="text-xs text-muted-foreground">45 min • Egg drop experiment</p>
+          <CardContent>
+            <div className="space-y-6">
+              <p className="body-text text-neutral-700 dark:text-neutral-300">
+                Browse through example lesson plans to see the quality and depth of AI-generated suggestions:
+              </p>
+              
+              <div className="space-y-4">
+                {/* Physics Example */}
+                <div className="p-4 border border-neutral-200 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-750 transition-colors">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex-1">
+                      <h4 className="subtitle text-neutral-900 dark:text-neutral-100">Physics: Momentum & Impact</h4>
+                      <p className="body-text text-neutral-600 dark:text-neutral-400">45 min • Egg drop experiment</p>
+                    </div>
+                    <Badge variant="soft-primary" className="text-xs">Physics</Badge>
                   </div>
-                  <Badge variant="secondary" className="text-xs">Physics</Badge>
+                  <div className="flex gap-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => onViewExample('physics')}
+                      className="flex-1 border-success-300 text-success-700 hover:bg-success-50 dark:border-success-600 dark:text-success-400 dark:hover:bg-success-950"
+                    >
+                      <Eye size={14} className="mr-2" />
+                      View
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => onEditExample('physics')}
+                      className="flex-1 border-blueberry-300 text-blueberry-700 hover:bg-blueberry-50 dark:border-blueberry-600 dark:text-blueberry-400 dark:hover:bg-blueberry-950"
+                    >
+                      <Edit3 size={14} className="mr-2" />
+                      Edit
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => onViewExample('physics')}
-                    className="flex-1"
-                  >
-                    <Eye size={12} className="mr-1" />
-                    View
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => onEditExample('physics')}
-                    className="flex-1"
-                  >
-                    <Edit3 size={12} className="mr-1" />
-                    Edit
-                  </Button>
-                </div>
-              </div>
 
-              {/* Computer Science Example */}
-              <div className="p-3 border rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <h4 className="font-medium text-sm">CS: Algorithm Introduction</h4>
-                    <p className="text-xs text-muted-foreground">60 min • Human sorting game</p>
+                {/* Computer Science Example */}
+                <div className="p-4 border border-neutral-200 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-750 transition-colors">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex-1">
+                      <h4 className="subtitle text-neutral-900 dark:text-neutral-100">CS: Algorithm Introduction</h4>
+                      <p className="body-text text-neutral-600 dark:text-neutral-400">60 min • Human sorting game</p>
+                    </div>
+                    <Badge variant="soft-primary" className="text-xs">Computer Science</Badge>
                   </div>
-                  <Badge variant="secondary" className="text-xs">Computer Science</Badge>
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => onViewExample('computer science')}
-                    className="flex-1"
-                  >
-                    <Eye size={12} className="mr-1" />
-                    View
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => onEditExample('computer science')}
-                    className="flex-1"
-                  >
-                    <Edit3 size={12} className="mr-1" />
-                    Edit
-                  </Button>
+                  <div className="flex gap-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => onViewExample('computer science')}
+                      className="flex-1 border-success-300 text-success-700 hover:bg-success-50 dark:border-success-600 dark:text-success-400 dark:hover:bg-success-950"
+                    >
+                      <Eye size={14} className="mr-2" />
+                      View
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => onEditExample('computer science')}
+                      className="flex-1 border-blueberry-300 text-blueberry-700 hover:bg-blueberry-50 dark:border-blueberry-600 dark:text-blueberry-400 dark:hover:bg-blueberry-950"
+                    >
+                      <Edit3 size={14} className="mr-2" />
+                      Edit
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -191,59 +204,67 @@ export default function CurriculumHomePage({
       </div>
 
       {/* Features Section */}
-      <div className="grid md:grid-cols-3 gap-6 mt-12">
-        <Card className="text-center p-6">
-          <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto mb-4">
-            <Target className="text-primary" size={32} />
-          </div>
-          <h3 className="font-semibold text-lg mb-2">Indian Context</h3>
-          <p className="text-sm text-muted-foreground">
-            Designed specifically for State Public Universities with Indian examples, companies, and cultural context.
-          </p>
+      <div className="grid md:grid-cols-3 gap-8 mt-16">
+        <Card variant="interactive" className="text-center">
+          <CardContent className="flex flex-col items-center pt-6">
+            <div className="w-20 h-20 bg-gradient-to-br from-blueberry-100 to-blueberry-200 dark:from-blueberry-900 dark:to-blueberry-800 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+              <Target className="text-blueberry-600 dark:text-blueberry-400" size={40} />
+            </div>
+            <h3 className="heading-3 text-neutral-900 dark:text-neutral-100 mb-3">Indian Context</h3>
+            <p className="body-text text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              Designed specifically for State Public Universities with Indian examples, companies, and cultural context.
+            </p>
+          </CardContent>
         </Card>
 
-        <Card className="text-center p-6">
-          <div className="p-3 bg-accent/10 rounded-full w-fit mx-auto mb-4">
-            <Users className="text-accent" size={32} />
-          </div>
-          <h3 className="font-semibold text-lg mb-2">Engagement Focus</h3>
-          <p className="text-sm text-muted-foreground">
-            Transform boring lectures into interactive experiences with hands-on experiments and curiosity-driven content.
-          </p>
+        <Card variant="interactive" className="text-center">
+          <CardContent className="flex flex-col items-center pt-6">
+            <div className="w-20 h-20 bg-gradient-to-br from-success-100 to-success-200 dark:from-success-900 dark:to-success-800 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+              <Users className="text-success-600 dark:text-success-400" size={40} />
+            </div>
+            <h3 className="heading-3 text-neutral-900 dark:text-neutral-100 mb-3">Engagement Focus</h3>
+            <p className="body-text text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              Transform boring lectures into interactive experiences with hands-on experiments and curiosity-driven content.
+            </p>
+          </CardContent>
         </Card>
 
-        <Card className="text-center p-6">
-          <div className="p-3 bg-secondary/50 rounded-full w-fit mx-auto mb-4">
-            <Edit3 className="text-secondary-foreground" size={32} />
-          </div>
-          <h3 className="font-semibold text-lg mb-2">Fully Editable</h3>
-          <p className="text-sm text-muted-foreground">
-            Customize every aspect of your lesson plan with our WYSIWYG editor. Save, export, and reuse your content.
-          </p>
+        <Card variant="interactive" className="text-center">
+          <CardContent className="flex flex-col items-center pt-6">
+            <div className="w-20 h-20 bg-gradient-to-br from-warning-100 to-warning-200 dark:from-warning-900 dark:to-warning-800 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+              <Edit3 className="text-warning-600 dark:text-warning-400" size={40} />
+            </div>
+            <h3 className="heading-3 text-neutral-900 dark:text-neutral-100 mb-3">Fully Editable</h3>
+            <p className="body-text text-neutral-600 dark:text-neutral-400 leading-relaxed">
+              Customize every aspect of your lesson plan with our WYSIWYG editor. Save, export, and reuse your content.
+            </p>
+          </CardContent>
         </Card>
       </div>
 
       {/* Quick Stats */}
-      <div className="bg-muted/50 rounded-lg p-6 mt-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-          <div>
-            <div className="text-2xl font-bold text-primary">4</div>
-            <div className="text-sm text-muted-foreground">Core Components</div>
+      <Card variant="gradient" className="mt-12">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="space-y-2">
+              <div className="heading-1 text-blueberry-600 dark:text-blueberry-400">4</div>
+              <div className="body-text text-neutral-600 dark:text-neutral-400">Core Components</div>
+            </div>
+            <div className="space-y-2">
+              <div className="heading-1 text-blueberry-600 dark:text-blueberry-400">100%</div>
+              <div className="body-text text-neutral-600 dark:text-neutral-400">Customizable</div>
+            </div>
+            <div className="space-y-2">
+              <div className="heading-1 text-blueberry-600 dark:text-blueberry-400">10+</div>
+              <div className="body-text text-neutral-600 dark:text-neutral-400">Subject Areas</div>
+            </div>
+            <div className="space-y-2">
+              <div className="heading-1 text-blueberry-600 dark:text-blueberry-400">∞</div>
+              <div className="body-text text-neutral-600 dark:text-neutral-400">Possibilities</div>
+            </div>
           </div>
-          <div>
-            <div className="text-2xl font-bold text-primary">100%</div>
-            <div className="text-sm text-muted-foreground">Customizable</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-primary">10+</div>
-            <div className="text-sm text-muted-foreground">Subject Areas</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-primary">∞</div>
-            <div className="text-sm text-muted-foreground">Possibilities</div>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

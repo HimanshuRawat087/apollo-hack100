@@ -16,7 +16,8 @@ import {
   ChevronRight,
   Download,
   Share,
-  Edit3
+  Edit3,
+  Loader2
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { mockCurriculumSuggestionCS } from './test-curriculum-data';
-import { generateCurriculumSuggestions } from '@/ai/flows/generate-curriculum-suggestions';
 import CurriculumViewer from './curriculum-viewer';
 
 // Use the types from the API library
@@ -95,10 +95,6 @@ export default function CurriculumSuggestor({ onEdit, onBack }: { onEdit: (sugge
       setIsGenerating(false);
     }
 
-    // const result = await generateCurriculumSuggestions(input);
-    // console.log(JSON.parse(result.curriculumSuggestions));
-    // setGeneratedSuggestion(JSON.parse(result.curriculumSuggestions));
-    // setGeneratedSuggestion(mockCurriculumSuggestionCS);
   };
 
   if (generatedSuggestion) {
@@ -112,145 +108,287 @@ export default function CurriculumSuggestor({ onEdit, onBack }: { onEdit: (sugge
   }
 
   return (
-    <div className="flex-grow flex flex-col p-6 space-y-8 mx-auto bg-white">
-      <div className="text-center">
-        <BookOpen size={56} className="mx-auto mb-5 text-primary" />
-        <h1 className="text-4xl font-bold tracking-tight text-primary">Curriculum Suggestor</h1>
-        <p className="mt-3 text-lg text-muted-foreground">
-          Transform your lessons into engaging experiences. Get personalized suggestions for structure, experiments, and resources.
-        </p>
-      </div>
-
-      <Card className="w-full p-6 bg-card/50 shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-semibold text-primary">Lesson Details</CardTitle>
-          <CardDescription>
-            Provide information about your upcoming lesson to get personalized recommendations.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="lesson-topic" className="text-md font-medium">Lesson Topic *</Label>
-              <Input 
-                id="lesson-topic" 
-                placeholder="e.g., Introduction to Machine Learning" 
-                value={lessonTopic}
-                onChange={(e) => setLessonTopic(e.target.value)}
-                className="bg-background text-base h-11"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="subject" className="text-md font-medium">Subject *</Label>
-              <Select onValueChange={setSubject}>
-                <SelectTrigger className="text-base h-11 bg-background">
-                  <SelectValue placeholder="Select subject" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="computer-science">Computer Science</SelectItem>
-                  <SelectItem value="mathematics">Mathematics</SelectItem>
-                  <SelectItem value="physics">Physics</SelectItem>
-                  <SelectItem value="chemistry">Chemistry</SelectItem>
-                  <SelectItem value="biology">Biology</SelectItem>
-                  <SelectItem value="business">Business Studies</SelectItem>
-                  <SelectItem value="economics">Economics</SelectItem>
-                  <SelectItem value="english">English</SelectItem>
-                  <SelectItem value="history">History</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="class-level" className="text-md font-medium">Class Level</Label>
-              <Select onValueChange={setClassLevel}>
-                <SelectTrigger className="text-base h-11 bg-background">
-                  <SelectValue placeholder="Select level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="undergraduate-1">1st Year UG</SelectItem>
-                  <SelectItem value="undergraduate-2">2nd Year UG</SelectItem>
-                  <SelectItem value="undergraduate-3">3rd Year UG</SelectItem>
-                  <SelectItem value="undergraduate-4">4th Year UG</SelectItem>
-                  <SelectItem value="postgraduate">Postgraduate</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="class-duration" className="text-md font-medium">Class Duration (mins)</Label>
-              <Select onValueChange={setClassDuration} defaultValue="60">
-                <SelectTrigger className="text-base h-11 bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="30">30 minutes</SelectItem>
-                  <SelectItem value="45">45 minutes</SelectItem>
-                  <SelectItem value="60">60 minutes</SelectItem>
-                  <SelectItem value="90">90 minutes</SelectItem>
-                  <SelectItem value="120">120 minutes</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="class-size" className="text-md font-medium">Class Size</Label>
-              <Select onValueChange={setClassSize}>
-                <SelectTrigger className="text-base h-11 bg-background">
-                  <SelectValue placeholder="Select size" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="small">Small (1-20)</SelectItem>
-                  <SelectItem value="medium">Medium (21-50)</SelectItem>
-                  <SelectItem value="large">Large (51-100)</SelectItem>
-                  <SelectItem value="very-large">Very Large (100+)</SelectItem>
-                </SelectContent>
-              </Select>
+    <div className="flex-grow flex flex-col p-6 space-y-8 mx-auto bg-neutral-50 dark:bg-neutral-900 max-w-4xl">
+      {/* Form Card */}
+      <Card variant="feature" className="shadow-2xl border-0">
+        <CardContent className="space-y-8 pt-6">
+          {/* Required Fields */}
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <Label 
+                  variant="default" 
+                  size="default"
+                  required
+                  className="text-neutral-700 dark:text-neutral-300"
+                >
+                  Lesson Topic
+                </Label>
+                <Input 
+                  variant="outline"
+                  size="lg"
+                  placeholder="e.g., Introduction to Machine Learning" 
+                  value={lessonTopic}
+                  onChange={(e) => setLessonTopic(e.target.value)}
+                  className="bg-white dark:bg-neutral-800 border-neutral-300 dark:border-neutral-600"
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <Label 
+                  variant="default" 
+                  size="default"
+                  required
+                  className="text-neutral-700 dark:text-neutral-300"
+                >
+                  Subject
+                </Label>
+                <Select onValueChange={setSubject}>
+                  <SelectTrigger 
+                    variant="outline"
+                    size="lg"
+                    className="bg-white dark:bg-neutral-800 border-neutral-300 dark:border-neutral-600"
+                  >
+                    <SelectValue placeholder="Select subject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="computer-science">Computer Science</SelectItem>
+                    <SelectItem value="mathematics">Mathematics</SelectItem>
+                    <SelectItem value="physics">Physics</SelectItem>
+                    <SelectItem value="chemistry">Chemistry</SelectItem>
+                    <SelectItem value="biology">Biology</SelectItem>
+                    <SelectItem value="business">Business Studies</SelectItem>
+                    <SelectItem value="economics">Economics</SelectItem>
+                    <SelectItem value="english">English</SelectItem>
+                    <SelectItem value="history">History</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="available-resources" className="text-md font-medium">Available Resources</Label>
-            <Input 
-              id="available-resources" 
-              placeholder="e.g., Projector, Whiteboard, Computer Lab, Basic Lab Equipment" 
-              value={availableResources}
-              onChange={(e) => setAvailableResources(e.target.value)}
-              className="bg-background text-base h-11"
-            />
-            <p className="text-xs text-muted-foreground px-1">List the resources available in your classroom</p>
+          {/* Optional Configuration */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-6 h-6 bg-blueberry-500 rounded-full flex items-center justify-center">
+                <Target size={14} className="text-white" />
+              </div>
+              <h3 className="subtitle text-neutral-900 dark:text-neutral-100">Class Configuration</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-3">
+                <Label 
+                  variant="default" 
+                  size="default"
+                  optional
+                  className="text-neutral-700 dark:text-neutral-300"
+                >
+                  Class Level
+                </Label>
+                <Select onValueChange={setClassLevel}>
+                  <SelectTrigger 
+                    variant="filled"
+                    size="lg"
+                    className="bg-neutral-50 dark:bg-neutral-800"
+                  >
+                    <SelectValue placeholder="Select level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="undergraduate-1">1st Year UG</SelectItem>
+                    <SelectItem value="undergraduate-2">2nd Year UG</SelectItem>
+                    <SelectItem value="undergraduate-3">3rd Year UG</SelectItem>
+                    <SelectItem value="undergraduate-4">4th Year UG</SelectItem>
+                    <SelectItem value="postgraduate">Postgraduate</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-3">
+                <Label 
+                  variant="default" 
+                  size="default"
+                  icon={<Clock size={16} />}
+                  className="text-neutral-700 dark:text-neutral-300"
+                >
+                  Duration
+                </Label>
+                <Select onValueChange={setClassDuration} defaultValue="60">
+                  <SelectTrigger 
+                    variant="filled"
+                    size="lg"
+                    className="bg-neutral-50 dark:bg-neutral-800"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="45">45 minutes</SelectItem>
+                    <SelectItem value="60">60 minutes</SelectItem>
+                    <SelectItem value="90">90 minutes</SelectItem>
+                    <SelectItem value="120">120 minutes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-3">
+                <Label 
+                  variant="default" 
+                  size="default"
+                  icon={<Users size={16} />}
+                  className="text-neutral-700 dark:text-neutral-300"
+                >
+                  Class Size
+                </Label>
+                <Select onValueChange={setClassSize}>
+                  <SelectTrigger 
+                    variant="filled"
+                    size="lg"
+                    className="bg-neutral-50 dark:bg-neutral-800"
+                  >
+                    <SelectValue placeholder="Select size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="small">Small (1-20)</SelectItem>
+                    <SelectItem value="medium">Medium (21-50)</SelectItem>
+                    <SelectItem value="large">Large (51-100)</SelectItem>
+                    <SelectItem value="very-large">Very Large (100+)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="learning-objectives" className="text-md font-medium">Learning Objectives (Optional)</Label>
-            <Textarea 
-              id="learning-objectives" 
-              placeholder="What should students learn or achieve by the end of this lesson?"
-              value={learningObjectives}
-              onChange={(e) => setLearningObjectives(e.target.value)}
-              className="bg-background text-base min-h-[80px]"
-            />
+          {/* Additional Details */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-6 h-6 bg-success-500 rounded-full flex items-center justify-center">
+                <Lightbulb size={14} className="text-white" />
+              </div>
+              <h3 className="subtitle text-neutral-900 dark:text-neutral-100">Additional Details</h3>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <Label 
+                  variant="default" 
+                  size="default"
+                  optional
+                  description="List the resources available in your classroom"
+                  className="text-neutral-700 dark:text-neutral-300"
+                >
+                  Available Resources
+                </Label>
+                <Input 
+                  variant="filled"
+                  size="lg"
+                  placeholder="e.g., Projector, Whiteboard, Computer Lab, Basic Lab Equipment" 
+                  value={availableResources}
+                  onChange={(e) => setAvailableResources(e.target.value)}
+                  className="bg-neutral-50 dark:bg-neutral-800"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label 
+                  variant="default" 
+                  size="default"
+                  optional
+                  description="What should students learn or achieve by the end of this lesson?"
+                  className="text-neutral-700 dark:text-neutral-300"
+                >
+                  Learning Objectives
+                </Label>
+                <Textarea 
+                  variant="filled"
+                  size="lg"
+                  placeholder="Describe the key learning outcomes you want to achieve..."
+                  value={learningObjectives}
+                  onChange={(e) => setLearningObjectives(e.target.value)}
+                  className="bg-neutral-50 dark:bg-neutral-800 min-h-[100px]"
+                />
+              </div>
+            </div>
           </div>
 
-          <Button 
-            onClick={handleGenerateSuggestions} 
-            className="w-full py-3 text-lg h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md shadow-md transition-transform transform hover:scale-105"
-            disabled={isGenerating || !lessonTopic.trim() || !subject.trim()}
-          >
-            {isGenerating ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
-                Generating Suggestions...
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2 h-5 w-5" />
-                Generate Lesson Plan
-              </>
+          {/* Generate Button */}
+          <div className="pt-6 border-t border-neutral-200 dark:border-neutral-700">
+            <Button 
+              variant="gradient"
+              size="xl"
+              onClick={handleGenerateSuggestions} 
+              className="w-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
+              disabled={isGenerating || !lessonTopic.trim() || !subject.trim()}
+              loading={isGenerating}
+              loadingText="Generating Your Personalized Lesson Plan..."
+            >
+              {!isGenerating && (
+                <>
+                  <Sparkles className="mr-3 h-6 w-6" />
+                  Generate Lesson Plan
+                </>
+              )}
+            </Button>
+            
+            {(!lessonTopic.trim() || !subject.trim()) && (
+              <p className="body-text text-neutral-500 dark:text-neutral-400 text-center mt-3">
+                Please fill in the required fields to generate your lesson plan
+              </p>
             )}
-          </Button>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Features Preview */}
+      <div className="grid md:grid-cols-4 gap-6 mt-12">
+        {[
+          {
+            icon: Target,
+            title: "Structure",
+            description: "Lesson phases with timing",
+            color: "blueberry"
+          },
+          {
+            icon: Play,
+            title: "Experiments",
+            description: "Hands-on activities",
+            color: "success"
+          },
+          {
+            icon: MessageCircle,
+            title: "Engagement",
+            description: "Curiosity questions",
+            color: "warning"
+          },
+          {
+            icon: FileText,
+            title: "Resources",
+            description: "Reading & practice",
+            color: "error"
+          }
+        ].map((feature, index) => (
+          <Card key={index} variant="interactive" className="text-center group">
+            <CardContent className="flex flex-col items-center space-y-3 pt-6">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ${
+                feature.color === 'blueberry' ? 'bg-blueberry-100 dark:bg-blueberry-900' :
+                feature.color === 'success' ? 'bg-success-100 dark:bg-success-900' :
+                feature.color === 'warning' ? 'bg-warning-100 dark:bg-warning-900' :
+                'bg-error-100 dark:bg-error-900'
+              }`}>
+                <feature.icon size={24} className={`${
+                  feature.color === 'blueberry' ? 'text-blueberry-600 dark:text-blueberry-400' :
+                  feature.color === 'success' ? 'text-success-600 dark:text-success-400' :
+                  feature.color === 'warning' ? 'text-warning-600 dark:text-warning-400' :
+                  'text-error-600 dark:text-error-400'
+                }`} />
+              </div>
+              <h3 className="subtitle text-neutral-900 dark:text-neutral-100">{feature.title}</h3>
+              <p className="body-text text-neutral-600 dark:text-neutral-400 text-sm">{feature.description}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

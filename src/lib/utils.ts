@@ -92,3 +92,111 @@ export function calculateTaskDates(
 
   return newTasks;
 }
+
+import ExcelJS from 'exceljs';
+
+export async function generateExcel(projectTitle: string, tasks: SavedProjectTask[]) {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Project Plan');
+
+  // Define columns with headers and widths
+  worksheet.columns = [
+    { header: 'Task Name', key: 'taskName', width: 40 },
+    { header: 'Task ID', key: 'taskId', width: 10 },
+    { header: 'Duration (Days)', key: 'duration', width: 15 },
+    { header: 'Start Date', key: 'startDate', width: 15 },
+    { header: 'End Date', key: 'endDate', width: 15 },
+    { header: 'Task Hints', key: 'hints', width: 120 }
+  ];
+
+  // Add rows with data
+  tasks.forEach(task => {
+    worksheet.addRow({
+      taskName: task.taskName,
+      taskId: task.taskId,
+      duration: task.duration,
+      startDate: task.startDate,
+      endDate: task.endDate,
+      hints: task.hints ? task.hints.map((hint, index) => `${index + 1}. ${hint}`).join('\n\n') : ''
+    });
+  });
+
+  // Apply styling
+  worksheet.eachRow((row, rowNumber) => {
+    // Set row height based on whether it's the header or a data row
+    if (rowNumber === 1) {
+      row.height = 30; // Smaller height for the header row
+    } else {
+      row.height = 200; // Keep current height for data rows
+    }
+
+    row.eachCell((cell, colNumber) => {
+      // Apply borders to all cells
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FF000000' } },
+        left: { style: 'thin', color: { argb: 'FF000000' } },
+        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+        right: { style: 'thin', color: { argb: 'FF000000' } }
+      };
+
+      // Header row styling
+      if (rowNumber === 1) {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F81BD' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        // Make bottom border of header row slightly thicker
+        cell.border.bottom = { style: 'medium', color: { argb: 'FF000000' } };
+      } else { // Data rows
+        // Alternating row colors
+        const rowColor = (rowNumber % 2 === 0) ? 'FFE6F0FA' : 'FFD9E6F5';
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowColor } };
+
+        // Default vertical alignment for data rows
+        cell.alignment = { vertical: 'middle' };
+
+        // Center alignment for specific columns (Task ID, Duration, Start Date, End Date)
+        if (colNumber >= 2 && colNumber <= 5) { 
+          cell.alignment = { ...cell.alignment, horizontal: 'center' };
+        }
+
+        // Apply wrapText and top vertical alignment to the Task Hints column (column 6 in 1-based indexing)
+        if (colNumber === 6) {
+          cell.alignment = { ...cell.alignment, wrapText: true, vertical: 'top' };
+        }
+
+        // Style for Task Name column (column 1) in data rows
+        if (colNumber === 1) {
+          cell.font = { bold: true, size: 14 };
+          cell.alignment = { ...cell.alignment, horizontal: 'center', wrapText: true };
+          // Add a subtle background color to Task Name column in data rows
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDEBF7' } }; // Very light blue
+        }
+      }
+    });
+  });
+
+  // Freeze the header row (row 1)
+  worksheet.views = [
+    {
+      state: 'frozen',
+      xSplit: 0,
+      ySplit: 1, // Freeze rows above this line (i.e., row 1)
+      topLeftCell: 'A2',
+      activeCell: 'A1',
+      pane: 'topRight'
+    }
+  ];
+
+  // Generate and write the Excel file
+  const fileName = `${projectTitle.replace(/[^a-zA-Z0-9_ -]/g, '')}_Project_Plan.xlsx`;
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+}

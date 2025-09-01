@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-// Import our custom components
+// Import your custom components (these would also need Apollo styling)
 import CurriculumSuggestor from './curriculum-suggestor';
 import CurriculumEditor from './curriculum-editor';
 import CurriculumViewer from './curriculum-viewer';
@@ -137,21 +137,23 @@ export default function CurriculumPage() {
     <div className="min-h-screen bg-background w-full">
       {/* Navigation Header - only show on non-home views */}
       {currentView !== 'home' && (
-        <div className="border-b bg-card/50 w-full">
+        <header className="border-b border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900 w-full shadow-sm">
           <div className="w-full px-6 py-4">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleBackToHome}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 text-blueberry-600 hover:text-blueberry-700 hover:bg-blueberry-50"
               >
                 <ArrowLeft size={16} />
                 Back to Home
               </Button>
-              <div className="flex items-center gap-2">
-                <BookOpen size={20} className="text-primary" />
-                <span className="text-lg font-semibold text-primary">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blueberry-100 dark:bg-blueberry-900 flex items-center justify-center">
+                  <BookOpen size={18} className="text-blueberry-600 dark:text-blueberry-400" />
+                </div>
+                <span className="heading-3 text-blueberry-700 dark:text-blueberry-300">
                   {currentView === 'generator' && 'Curriculum Generator'}
                   {currentView === 'viewer' && 'Lesson Plan Viewer'}
                   {currentView === 'editor' && 'Lesson Plan Editor'}
@@ -160,11 +162,11 @@ export default function CurriculumPage() {
               </div>
             </div>
           </div>
-        </div>
+        </header>
       )}
 
       {/* Main Content */}
-      <main className="flex-grow w-full">
+      <main className="flex-grow w-full bg-neutral-50 dark:bg-neutral-900">
         {renderCurrentView()}
       </main>
     </div>

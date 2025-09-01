@@ -197,3 +197,9 @@ exports.generateCurriculumSuggestionsFn = onRequest(
     }
   }
 );
+
+export { sendGmailEmail } from './gmailSend';
+export { startGmailAuth, oauth2callback } from './gmailAuth';
+export { checkIncomingEmails } from './emailListener';
+export { parsePdfForEmail } from './pdfParser';
+export { processEmailWithAI } from './ai/emailProcessor';

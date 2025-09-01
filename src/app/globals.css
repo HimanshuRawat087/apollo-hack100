@@ -1,76 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@400;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
+/* Import Apollo fonts */
 
 @layer base {
   :root {
-    --background: 220 93% 95%; /* #E8F0FE */
-    --foreground: 215 28% 17%; /* #20293A - Dark Blue Gray for text */
-    --card: 0 0% 100%;
-    --card-foreground: 215 28% 17%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 28% 17%;
-    --primary: 217 89% 61%; /* #4285F4 - Vibrant Blue */
-    --primary-foreground: 0 0% 100%; /* White */
-    --secondary: 220 50% 90%; /* Lighter, softer blue-gray for secondary elements */
-    --secondary-foreground: 215 28% 17%; 
-    --muted: 220 50% 92%; /* Muted variant of background */
-    --muted-foreground: 215 20% 50%; /* Softer foreground for muted text */
-    --accent: 262 52% 50%; /* #673AB7 - Analogous Blue-Violet */
-    --accent-foreground: 0 0% 100%; /* White */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 220 40% 85%; /* Border color to complement the theme */
-    --input: 220 40% 88%; /* Input background */
-    --ring: 217 89% 61%; /* Primary color for rings */
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    /* Apollo Color Tokens - Light Mode */
+    
+    /* Primary Blueberry Colors */
+    --blueberry-50: 235 239 247; /* #EBEFF7 */
+    --blueberry-100: 205 197 235; /* #CDC5EB */
+    --blueberry-200: 171 159 223; /* #AB9FDF */
+    --blueberry-300: 137 120 211; /* #8978D3 */
+    --blueberry-400: 110 92 201; /* #6E5CC9 */
+    --blueberry-500: 81 65 205; /* #5141CD */
+    --blueberry-600: 71 60 185; /* #473CB9 */
+    --blueberry-700: 54 52 176; /* #3634B0 */
+    --blueberry-800: 38 47 168; /* #262FA8 */
+    --blueberry-900: 0 36 154; /* #00249A */
+
+    /* Neutral Grayscale Colors */
+    --neutral-0: 0 0% 100%; /* #FFFFFF */
+    --neutral-50: 0 0% 98%; /* #FAFAFA */
+    --neutral-100: 0 0% 96%; /* #F5F5F5 */
+    --neutral-200: 0 0% 93%; /* #EEEEEE */
+    --neutral-300: 0 0% 88%; /* #E0E0E0 */
+    --neutral-400: 0 0% 74%; /* #BDBDBD */
+    --neutral-500: 0 0% 62%; /* #9E9E9E */
+    --neutral-600: 0 0% 46%; /* #757575 */
+    --neutral-700: 0 0% 38%; /* #616161 */
+    --neutral-800: 0 0% 26%; /* #424242 */
+    --neutral-900: 0 0% 13%; /* #212121 */
+    --neutral-1000: 0 0% 4%; /* #0A0A0A */
+
+    /* Success Colors */
+    --success-50: 109 96% 94%; /* #EAFBE6 */
+    --success-100: 109 82% 85%; /* #CBF4C1 */
+    --success-200: 109 75% 76%; /* #A6EC98 */
+    --success-300: 109 67% 66%; /* #7CE36A */
+    --success-400: 109 60% 56%; /* #52DC43 */
+    --success-500: 122 100% 42%; /* #00D504 */
+    --success-600: 120 100% 39%; /* #00C400 */
+    --success-700: 120 100% 32%; /* #00A300 */
+    --success-800: 120 100% 26%; /* #008500 */
+    --success-900: 120 100% 19%; /* #006100 */
+
+    /* Error Colors */
+    --error-50: 4 100% 97%; /* #FFEDEC */
+    --error-100: 353 100% 90%; /* #FFC8CC */
+    --error-200: 1 100% 78%; /* #FF918E */
+    --error-300: 1 100% 69%; /* #FF6462 */
+    --error-400: 1 100% 61%; /* #FF3A39 */
+    --error-500: 1 100% 52%; /* #FFC1B13 */
+    --error-600: 350 100% 45%; /* #ED0017 */
+    --error-700: 347 100% 42%; /* #DC0011 */
+    --error-800: 343 100% 39%; /* #C40107 */
+    --error-900: 0 100% 32%; /* #A30000 */
+
+    /* Warning Colors */
+    --warning-50: 44 100% 94%; /* #FFF4E2 */
+    --warning-100: 39 100% 85%; /* #FFE0B2 */
+    --warning-200: 36 100% 75%; /* #FFCD81 */
+    --warning-300: 34 100% 65%; /* #FFEB84E */
+    --warning-400: 31 100% 58%; /* #FFA827 */
+    --warning-500: 32 100% 58%; /* #FF9F29 */
+    --warning-600: 350 100% 45%; /* #ED0017 */
+    --warning-700: 28 95% 43%; /* #D66F03 */
+    --warning-800: 27 68% 42%; /* #B55E22 */
+    --warning-900: 25 76% 31%; /* #8D3811 */
+
+    /* Semantic Colors - mapping to Apollo system */
+    --background: var(--neutral-0);
+    --foreground: var(--neutral-900);
+    --card: var(--neutral-0);
+    --card-foreground: var(--neutral-900);
+    --popover: var(--neutral-0);
+    --popover-foreground: var(--neutral-900);
+    --primary: var(--blueberry-500);
+    --primary-foreground: var(--neutral-0);
+    --secondary: var(--neutral-100);
+    --secondary-foreground: var(--neutral-900);
+    --muted: var(--neutral-100);
+    --muted-foreground: var(--neutral-600);
+    --accent: var(--blueberry-600);
+    --accent-foreground: var(--neutral-0);
+    --destructive: var(--error-500);
+    --destructive-foreground: var(--neutral-0);
+    --border: var(--neutral-300);
+    --input: var(--neutral-100);
+    --ring: var(--blueberry-500);
+    --chart-1: var(--blueberry-500);
+    --chart-2: var(--success-500);
+    --chart-3: var(--warning-500);
+    --chart-4: var(--error-500);
+    --chart-5: var(--neutral-600);
     --radius: 0.5rem;
-    --sidebar-background: 220 80% 97%; /* Light blue for sidebar, slightly different from main bg */
-    --sidebar-foreground: 215 28% 17%;
-    --sidebar-primary: 217 89% 61%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 262 52% 50%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 40% 85%;
-    --sidebar-ring: 217 89% 61%;
+
+    /* Sidebar colors */
+    --sidebar-background: var(--neutral-50);
+    --sidebar-foreground: var(--neutral-900);
+    --sidebar-primary: var(--blueberry-500);
+    --sidebar-primary-foreground: var(--neutral-0);
+    --sidebar-accent: var(--blueberry-600);
+    --sidebar-accent-foreground: var(--neutral-0);
+    --sidebar-border: var(--neutral-300);
+    --sidebar-ring: var(--blueberry-500);
   }
+
   .dark {
-    /* Dark theme adjustments to match the blue palette */
-    --background: 220 20% 10%; /* Darker blue for background */
-    --foreground: 220 93% 95%; /* Light blue for text */
-    --card: 220 20% 13%;
-    --card-foreground: 220 93% 95%;
-    --popover: 220 20% 13%;
-    --popover-foreground: 220 93% 95%;
-    --primary: 217 89% 61%; /* #4285F4 */
-    --primary-foreground: 0 0% 100%; /* White */
-    --secondary: 220 15% 20%;
-    --secondary-foreground: 220 93% 95%;
-    --muted: 220 15% 20%;
-    --muted-foreground: 220 20% 60%;
-    --accent: 262 52% 50%; /* #673AB7 */
-    --accent-foreground: 0 0% 100%; /* White */
-    --destructive: 0 70% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 220 15% 25%;
-    --input: 220 15% 25%;
-    --ring: 217 89% 61%; /* Primary color for rings */
-    --sidebar-background: 220 20% 12%; 
-    --sidebar-foreground: 220 93% 95%;
-    --sidebar-primary: 217 89% 61%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 262 52% 50%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 15% 25%;
-    --sidebar-ring: 217 89% 61%;
+    /* Apollo Color Tokens - Dark Mode */
+    --background: var(--neutral-900);
+    --foreground: var(--neutral-50);
+    --card: var(--neutral-800);
+    --card-foreground: var(--neutral-50);
+    --popover: var(--neutral-800);
+    --popover-foreground: var(--neutral-50);
+    --primary: var(--blueberry-400);
+    --primary-foreground: var(--neutral-0);
+    --secondary: var(--neutral-800);
+    --secondary-foreground: var(--neutral-200);
+    --muted: var(--neutral-800);
+    --muted-foreground: var(--neutral-400);
+    --accent: var(--blueberry-400);
+    --accent-foreground: var(--neutral-0);
+    --destructive: var(--error-400);
+    --destructive-foreground: var(--neutral-0);
+    --border: var(--neutral-700);
+    --input: var(--neutral-800);
+    --ring: var(--blueberry-400);
+    --sidebar-background: var(--neutral-900);
+    --sidebar-foreground: var(--neutral-50);
+    --sidebar-primary: var(--blueberry-400);
+    --sidebar-primary-foreground: var(--neutral-0);
+    --sidebar-accent: var(--blueberry-400);
+    --sidebar-accent-foreground: var(--neutral-0);
+    --sidebar-border: var(--neutral-700);
+    --sidebar-ring: var(--blueberry-400);
   }
 }
 
@@ -78,34 +146,132 @@ body {
   * {
     @apply border-border;
   }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Open Sans', 'Roboto', system-ui, sans-serif;
+  }
+
+  /* Apollo Typography Styles */
+  .heading-1 {
+    @apply text-heading-1 font-roboto font-light;
+  }
+
+  .heading-2 {
+    @apply text-heading-2 font-roboto font-normal;
+  }
+
+  .heading-3 {
+    @apply text-heading-3 font-roboto font-medium;
+  }
+
+  .subtitle {
+    @apply text-subtitle font-roboto font-bold;
+  }
+
+  .body-text {
+    @apply text-body font-open-sans font-normal;
+  }
+
+  .body-bold {
+    @apply text-body-bold font-open-sans font-bold;
+  }
+
+  .button-text {
+    @apply text-button font-open-sans font-semibold uppercase;
+  }
+
+  .overline {
+    @apply text-overline font-open-sans font-normal uppercase;
   }
 }
 
-@keyframes siri-border-animation {
-  0% {
-    border-color: #FF6B6B; /* Red */
+@layer components {
+  /* Apollo Button Components */
+  .btn-primary {
+    @apply bg-blueberry-500 hover:bg-blueberry-600 text-white rounded-button px-4 py-2 button-text shadow-button hover:shadow-button-hover transition-all duration-200;
   }
-  25% {
-    border-color: #FFD166; /* Yellow */
+
+  .btn-primary-outline {
+    @apply border-2 border-blueberry-500 text-blueberry-500 hover:bg-blueberry-500 hover:text-white rounded-button px-4 py-2 button-text transition-all duration-200;
   }
-  50% {
-    border-color: #06D6A0; /* Green */
+
+  .btn-secondary {
+    @apply bg-neutral-200 hover:bg-neutral-300 text-neutral-900 rounded-button px-4 py-2 button-text transition-all duration-200;
   }
-  75% {
-    border-color: #118AB2; /* Blue */
+
+  .btn-secondary-outline {
+    @apply border-2 border-neutral-400 text-neutral-700 hover:bg-neutral-200 rounded-button px-4 py-2 button-text transition-all duration-200;
   }
-  100% {
-    border-color: #FF6B6B; /* Back to Red */
+
+  .btn-success {
+    @apply bg-success-500 hover:bg-success-600 text-white rounded-button px-4 py-2 button-text transition-all duration-200;
+  }
+
+  .btn-error {
+    @apply bg-error-500 hover:bg-error-600 text-white rounded-button px-4 py-2 button-text transition-all duration-200;
+  }
+
+  .btn-ghost {
+    @apply text-blueberry-500 hover:bg-blueberry-50 rounded-button px-4 py-2 button-text transition-all duration-200;
+  }
+
+  .btn-disabled {
+    @apply bg-neutral-300 text-neutral-500 cursor-not-allowed rounded-button px-4 py-2 button-text;
+  }
+
+  /* Apollo Card Component */
+  .card-apollo {
+    @apply bg-card text-card-foreground rounded-lg shadow-card p-6;
+  }
+
+  /* Apollo Input Component */
+  .input-apollo {
+    @apply w-full px-3 py-2 border border-neutral-300 rounded-md bg-background text-foreground placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-blueberry-500 focus:border-transparent;
   }
 }
 
-.animated-siri-border {
-  border-width: 2px; /* Ensure border is visible */
-  border-style: solid; /* Ensure border is visible */
-  animation: siri-border-animation 4s infinite linear;
-  /* Add some padding if the Badge component doesn't handle it well with border */
-  /* padding: 0.25em 0.5em; */
-  /* The Badge component might already have padding. Adjust if necessary. */
+@layer utilities {
+  /* Animated Siri Border - keeping your existing animation */
+  .animated-siri-border {
+    @apply border-2 border-solid animate-siri-border;
+  }
+
+  /* Apollo Color Utilities */
+  .text-primary-apollo {
+    @apply text-blueberry-500;
+  }
+
+  .bg-primary-apollo {
+    @apply bg-blueberry-500;
+  }
+
+  .border-primary-apollo {
+    @apply border-blueberry-500;
+  }
+
+  /* Status Colors */
+  .text-success-apollo {
+    @apply text-success-500;
+  }
+
+  .text-error-apollo {
+    @apply text-error-500;
+  }
+
+  .text-warning-apollo {
+    @apply text-warning-500;
+  }
+
+  .bg-success-apollo {
+    @apply bg-success-500;
+  }
+
+  .bg-error-apollo {
+    @apply bg-error-500;
+  }
+
+  .bg-warning-apollo {
+    @apply bg-warning-500;
+  }
 }

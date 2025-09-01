@@ -9,37 +9,63 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
+const ApolloLogo = ({ size = "default" }: { size?: "sm" | "default" | "lg" }) => {
+  const sizes = {
+    sm: { container: "w-8 h-8", icon: "20" },
+    default: { container: "w-12 h-12", icon: "24" },
+    lg: { container: "w-16 h-16", icon: "32" }
+  };
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className={`${sizes[size].container} bg-gradient-to-br from-blueberry-500 to-blueberry-600 rounded-xl flex items-center justify-center shadow-lg`}>
+        <svg 
+          width={sizes[size].icon} 
+          height={sizes[size].icon} 
+          viewBox="0 0 100 100" 
+          xmlns="http://www.w3.org/2000/svg" 
+          className="text-white"
+        >
+          <rect x="15" y="15" width="40" height="40" rx="8" ry="8" fill="currentColor" />
+          <rect x="35" y="35" width="40" height="40" rx="8" ry="8" fill="currentColor" opacity="0.7" />
+        </svg>
+      </div>
+      {size !== "sm" && (
+        <div>
+          <h1 className={size === "lg" ? "heading-1" : "heading-2"}>
+            <span className="bg-gradient-to-r from-blueberry-600 to-blueberry-700 bg-clip-text text-transparent font-bold">
+              Apollo
+            </span>
+          </h1>
+          <p className="overline text-blueberry-600 dark:text-blueberry-400">
+            Education Platform
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function LandingPage() {
 
   useEffect(() => {
     // Add subtle animation on scroll
     const handleScroll = () => {
-      const cards = document.querySelectorAll('.stat-card, .feature-card');
+      const cards = document.querySelectorAll('.animate-on-scroll');
       cards.forEach(card => {
         const rect = card.getBoundingClientRect();
-        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-        if (isVisible) {
-          (card as HTMLElement).style.opacity = '1';
-          (card as HTMLElement).style.transform = 'translateY(0)';
+        const isVisible = rect.top < window.innerHeight - 100;
+        if (isVisible && !card.classList.contains('animated')) {
+          card.classList.add('animated');
+          card.classList.remove('opacity-0', 'translate-y-8');
+          card.classList.add('opacity-100', 'translate-y-0');
         }
       });
     };
 
     window.addEventListener('scroll', handleScroll);
-
-    // Initialize cards with fade-in effect
-    const cards = document.querySelectorAll('.stat-card, .feature-card');
-    cards.forEach((card, index) => {
-      const element = card as HTMLElement;
-      element.style.opacity = '0';
-      element.style.transform = 'translateY(30px)';
-      element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-      
-      setTimeout(() => {
-        element.style.opacity = '1';
-        element.style.transform = 'translateY(0)';
-      }, index * 200);
-    });
+    // Initial check
+    handleScroll();
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -47,705 +73,353 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <>
-      <style jsx global>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-
-        body {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-          line-height: 1.6;
-          color: #333;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          min-height: 100vh;
-          padding-top: 80px;
-        }
-
-        .topbar {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(15px);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-          padding: 15px 20px;
-          z-index: 1000;
-          transition: all 0.3s ease;
-        }
-
-        .topbar-content {
-          max-width: 1200px;
-          margin: 0 auto;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .topbar-logo {
-          font-size: 1.5rem;
-          font-weight: 800;
-          color: #2c3e50;
-          text-decoration: none;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          cursor: pointer;
-        }
-
-        .topbar-logo:hover {
-          color: #667eea;
-          transition: color 0.3s ease;
-        }
-
-        .topbar-button {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          padding: 12px 25px;
-          text-decoration: none;
-          border-radius: 25px;
-          font-weight: 600;
-          font-size: 0.9rem;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-          box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-          cursor: pointer;
-          border: none;
-        }
-
-        .topbar-button:hover {
-          transform: translateY(-2px) scale(1.05);
-          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 20px;
-        }
-
-        .hero {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          margin: 20px;
-          border-radius: 20px;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-        }
-
-        .header {
-          text-align: center;
-          padding: 60px 40px 40px;
-          background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-          color: white;
-        }
-
-        .logo {
-          font-size: 2.5rem;
-          font-weight: 800;
-          margin-bottom: 10px;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .tagline {
-          font-size: 1.2rem;
-          opacity: 0.9;
-          font-weight: 300;
-        }
-
-        .problem-section {
-          padding: 60px 40px;
-          text-align: center;
-          background: #fff;
-        }
-
-        .problem-title {
-          font-size: 2.8rem;
-          font-weight: 700;
-          color: #e74c3c;
-          margin-bottom: 20px;
-          line-height: 1.2;
-        }
-
-        .problem-subtitle {
-          font-size: 1.3rem;
-          color: #666;
-          margin-bottom: 30px;
-          max-width: 800px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-        .stats {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 30px;
-          margin: 40px 0;
-        }
-
-        .stat-card {
-          background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-          padding: 30px 20px;
-          border-radius: 15px;
-          color: white;
-          text-align: center;
-          transform: translateY(0);
-          transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover {
-          transform: translateY(-5px);
-        }
-
-        .stat-number {
-          font-size: 3rem;
-          font-weight: 800;
-          display: block;
-          margin-bottom: 10px;
-        }
-
-        .stat-text {
-          font-size: 1rem;
-          opacity: 0.9;
-        }
-
-        .solution-section {
-          padding: 60px 40px;
-          background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        }
-
-        .solution-title {
-          text-align: center;
-          font-size: 2.5rem;
-          font-weight: 700;
-          color: #2c3e50;
-          margin-bottom: 50px;
-        }
-
-        .features {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          gap: 30px;
-        }
-
-        .feature-card {
-          background: rgba(255, 255, 255, 0.9);
-          padding: 40px 30px;
-          border-radius: 20px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .feature-card:hover {
-          transform: translateY(-10px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .feature-icon {
-          font-size: 3rem;
-          margin-bottom: 20px;
-          display: block;
-        }
-
-        .feature-title {
-          font-size: 1.5rem;
-          font-weight: 600;
-          color: #2c3e50;
-          margin-bottom: 15px;
-        }
-
-        .feature-description {
-          color: #666;
-          line-height: 1.6;
-        }
-
-        .cta-section {
-          padding: 60px 40px;
-          background: #2c3e50;
-          color: white;
-          text-align: center;
-        }
-
-        .cta-title {
-          font-size: 2.2rem;
-          font-weight: 700;
-          margin-bottom: 20px;
-        }
-
-        .cta-subtitle {
-          font-size: 1.2rem;
-          opacity: 0.8;
-          margin-bottom: 30px;
-        }
-
-        .cta-button {
-          display: inline-block;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          padding: 18px 40px;
-          text-decoration: none;
-          border-radius: 50px;
-          font-weight: 600;
-          font-size: 1.1rem;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-          box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-          cursor: pointer;
-          border: none;
-        }
-
-        .cta-button:hover {
-          transform: translateY(-3px) scale(1.05);
-          box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
-        }
-
-        .challenges-section {
-          padding: 60px 40px;
-          background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
-          position: relative;
-        }
-
-        .challenges-title {
-          text-align: center;
-          font-size: 2.5rem;
-          font-weight: 700;
-          color: #2c3e50;
-          margin-bottom: 20px;
-        }
-
-        .challenges-subtitle {
-          text-align: center;
-          font-size: 1.3rem;
-          color: #666;
-          margin-bottom: 50px;
-          max-width: 600px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-        .challenges-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 30px;
-          max-width: 1000px;
-          margin: 0 auto;
-        }
-
-        .challenge-card {
-          background: rgba(255, 255, 255, 0.9);
-          padding: 35px 25px;
-          border-radius: 20px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          text-align: center;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .challenge-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .challenge-icon {
-          font-size: 3.5rem;
-          display: block;
-          margin-bottom: 20px;
-        }
-
-        .challenge-title {
-          font-size: 1.4rem;
-          font-weight: 600;
-          color: #2c3e50;
-          margin-bottom: 15px;
-          line-height: 1.3;
-        }
-
-        .challenge-description {
-          color: #666;
-          line-height: 1.6;
-          font-size: 1rem;
-        }
-
-        .faq-section {
-          padding: 60px 40px;
-          background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-          color: white;
-        }
-
-        .faq-title {
-          text-align: center;
-          font-size: 2.5rem;
-          font-weight: 700;
-          margin-bottom: 50px;
-          color: white;
-        }
-
-        .faq-categories {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          gap: 40px;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-
-        .faq-category {
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          border-radius: 20px;
-          padding: 30px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .category-title {
-          font-size: 1.5rem;
-          font-weight: 600;
-          margin-bottom: 25px;
-          text-align: center;
-          color: white;
-        }
-
-        .faq-items {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        .faq-item {
-          /* background, border-radius, border, transition are from original .faq-item */
-          background: rgba(255, 255, 255, 0.15);
-          border-radius: 15px !important; /* Ensure this radius is used */
-          border: 1px solid rgba(255, 255, 255, 0.1) !important; /* Ensure this border is used */
-          padding: 0 !important; /* Remove AccordionItem default padding; rely on inner elements or original .faq-item padding */
-          margin-bottom: 20px; /* Add original gap between items, was on .faq-items previously implicitly */
-          transition: transform 0.3s ease, background 0.3s ease;
-        }
-        /* shadcn AccordionItem has a border-bottom by default, remove it to use the .faq-item's own border */
-        .faq-item[data-state="open"], .faq-item[data-state="closed"] {
-            border-bottom-width: 0px !important;
-        }
-
-
-        .faq-item:hover {
-          transform: translateY(-3px);
-          background: rgba(255, 255, 255, 0.2);
-        }
-
-        .faq-question { /* This class is on AccordionTrigger */
-          font-weight: 600;
-          font-size: 1.1rem;
-          color: white;
-          line-height: 1.4;
-          text-align: left; 
-          width: 100%; 
-          padding: 20px !important; /* Add padding directly to trigger, as it's the clickable area */
-          margin-bottom: 0; /* Remove any margin */
-        }
-        
-        .faq-question[data-state="open"] {
-          padding-bottom: 10px !important; /* Reduce padding when open, answer will add its own top padding */
-        }
-
-
-        /* Style for the chevron icon in AccordionTrigger */
-        .faq-question svg {
-          color: white !important; 
-          stroke: white !important; 
-          min-width: 24px !important; /* Ensure icon has some space */
-          min-height: 24px !important;
-          width: 24px !important;
-          height: 24px !important;
-        }
-
-        .faq-answer { /* This class is on AccordionContent */
-          color: rgba(255, 255, 255, 0.9);
-          padding: 0 20px 20px 20px !important; /* Add padding to content (left, right, bottom) */
-          line-height: 1.6;
-          font-size: 0.95rem;
-        }
-
-        @media (max-width: 768px) {
-          body {
-            padding-top: 70px;
-          }
-
-          .topbar {
-            padding: 12px 15px;
-          }
-
-          .topbar-logo {
-            font-size: 1.3rem;
-          }
-
-          .topbar-button {
-            padding: 10px 20px;
-            font-size: 0.85rem;
-          }
-
-          .faq-section {
-            padding: 40px 20px;
-          }
-
-          .faq-title {
-            font-size: 2rem;
-          }
-
-          .faq-categories {
-            grid-template-columns: 1fr;
-            gap: 30px;
-          }
-
-          .faq-category {
-            padding: 20px;
-          }
-
-          .challenges-section {
-            padding: 40px 20px;
-          }
-
-          .challenges-title {
-            font-size: 2rem;
-          }
-
-          .challenges-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .hero {
-            margin: 10px;
-          }
-
-          .header {
-            padding: 40px 20px 30px;
-          }
-
-          .logo {
-            font-size: 2rem;
-          }
-
-          .problem-title {
-            font-size: 2.2rem;
-          }
-
-          .solution-title {
-            font-size: 2rem;
-          }
-
-          .features {
-            grid-template-columns: 1fr;
-          }
-
-          .stats {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
-
-      <div className="topbar">
-        <div className="topbar-content">
-          <div className="topbar-logo">
-            🚀 Project Apollo
+    <div className="min-h-screen bg-gradient-to-br from-blueberry-400 via-blueberry-500 to-blueberry-700">
+      {/* Fixed Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white backdrop-blur-md border-b border-neutral-200 shadow-sm">
+        <div className="max-w-6xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <ApolloLogo size="default" />
+            <Link href="/login">
+              <button className="bg-gradient-to-r from-blueberry-500 to-blueberry-600 hover:from-blueberry-600 hover:to-blueberry-700 text-white px-6 py-2.5 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                Get Started
+              </button>
+            </Link>
           </div>
-          <Link href="/login" passHref>
-            <button className="topbar-button">Get Started</button>
-          </Link>
         </div>
+      </nav>
+
+      {/* Main Content */}
+      <div className="pt-20">
+        {/* Hero Section */}
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-blueberry-400/10 to-blueberry-600/20"></div>
+          <div className="relative max-w-6xl mx-auto px-6 py-20">
+            <div className="bg-white backdrop-blur-xl rounded-3xl p-12 shadow-2xl border border-white/30">
+              {/* Mission & Vision Header */}
+              <div className="text-center mb-16">
+                <div className="flex items-center justify-center mb-8">
+                  <div className="text-8xl mb-4">👩🏼‍🏫</div>
+                </div>
+                <h1 className="heading-1 bg-gradient-to-r from-blueberry-600 via-blueberry-700 to-blueberry-800 bg-clip-text text-transparent mb-6 font-light">
+                  Transform Education to Empower Humanity
+                </h1>
+                <p className="subtitle text-neutral-700 max-w-3xl mx-auto mb-8">
+                  Become a leading teacher assistant platform, making graduates employable through AI-powered education tools
+                </p>
+                
+                {/* Critical Stats */}
+                <div className="bg-gradient-to-r from-error-25 to-error-50 border-2 border-error-300 rounded-2xl p-8 mb-8 shadow-lg">
+                  <h2 className="heading-2 bg-gradient-to-r bg-clip-text text-white mb-3">
+                    49% of Indian Graduates are UNEMPLOYABLE
+                  </h2>
+                  <p className="body-text text-white font-medium">
+                    According to government economic survey - and the on-ground reality is even worse
+                  </p>
+                </div>
+              </div>
+
+              {/* Market Size Stats */}
+              <div className="grid md:grid-cols-3 gap-6 mb-16">
+                <div className="animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-100">
+                  <div className="bg-gradient-to-br from-blueberry-500 via-blueberry-600 to-blueberry-700 text-white p-8 rounded-2xl text-center shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+                    <div className="heading-1 font-light mb-2">4 Cr</div>
+                    <div className="body-text opacity-90">Students in Higher Education Today</div>
+                  </div>
+                </div>
+                <div className="animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-200">
+                  <div className="bg-gradient-to-br from-success-500 via-success-600 to-success-700 text-white p-8 rounded-2xl text-center shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+                    <div className="heading-1 font-light mb-2">9 Cr</div>
+                    <div className="body-text opacity-90">Expected by 2035</div>
+                  </div>
+                </div>
+                <div className="animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-300">
+                  <div className="bg-gradient-to-br from-warning-500 via-warning-600 to-warning-700 text-white p-8 rounded-2xl text-center shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+                    <div className="heading-1 font-light mb-2">82%</div>
+                    <div className="body-text opacity-90">Students in State Public Universities</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Problem Analysis Section */}
+        <section className="py-20 bg-gradient-to-br from-error-25 via-error-50 to-error-100">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="heading-2 bg-gradient-to-r from-neutral-800 to-neutral-900 bg-clip-text text-transparent mb-6">Why Are Students Struggling? 🤔</h2>
+              <p className="subtitle text-neutral-700 max-w-3xl mx-auto">
+                The root causes behind India's graduate unemployability crisis
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="animate-on-scroll opacity-0 translate-y-8 transition-all duration-700">
+                <div className="bg-white backdrop-blur-sm rounded-2xl p-8 text-center shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-error-200">
+                  <div className="text-5xl mb-6">📚</div>
+                  <h3 className="heading-3 text-neutral-900 mb-4">Lack of Practical Education</h3>
+                  <p className="body-text text-neutral-700">
+                    Educational institutions focus on theory without practical training and real-world application
+                  </p>
+                </div>
+              </div>
+              
+              <div className="animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-100">
+                <div className="bg-white backdrop-blur-sm rounded-2xl p-8 text-center shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-error-200">
+                  <div className="text-5xl mb-6">😴</div>
+                  <h3 className="heading-3 text-neutral-900 mb-4">Boring Classroom Teaching</h3>
+                  <p className="body-text text-neutral-700">
+                    Lack of interactive, interesting and engaging teaching methods in classrooms
+                  </p>
+                </div>
+              </div>
+              
+              <div className="animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-200">
+                <div className="bg-white backdrop-blur-sm rounded-2xl p-8 text-center shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-error-200">
+                  <div className="text-5xl mb-6">🧭</div>
+                  <h3 className="heading-3 text-neutral-900 mb-4">No Teacher-Student Mentorship</h3>
+                  <p className="body-text text-neutral-700">
+                    Absence of personalized guidance and one-on-one mentoring relationships
+                  </p>
+                </div>
+              </div>
+              
+              <div className="animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-300">
+                <div className="bg-white backdrop-blur-sm rounded-2xl p-8 text-center shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-error-200">
+                  <div className="text-5xl mb-6">📊</div>
+                  <h3 className="heading-3 text-neutral-900 mb-4">Outdated Teacher Knowledge</h3>
+                  <p className="body-text text-neutral-700">
+                    Teachers lack preparedness and updates with current industry trends and technologies
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Solution Section */}
+        <section className="py-20 bg-gradient-to-br from-blueberry-25 via-blueberry-50 to-blueberry-100">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="heading-2 bg-gradient-to-r from-blueberry-700 to-blueberry-800 bg-clip-text text-transparent mb-6">Our AI-Powered Solution</h2>
+              <p className="subtitle text-neutral-700 max-w-3xl mx-auto">
+                Two core tenets to transform education and make teachers more effective
+              </p>
+            </div>
+            
+            {/* Solution Tenets */}
+            <div className="grid md:grid-cols-2 gap-12 mb-16">
+              <div className="animate-on-scroll opacity-0 translate-y-8 transition-all duration-700">
+                <div className="bg-white backdrop-blur-sm rounded-2xl p-8 shadow-xl border-2 border-blueberry-200 hover:border-blueberry-300 transition-all duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blueberry-100 to-blueberry-200 rounded-2xl flex items-center justify-center mb-6">
+                    <span className="text-3xl">🎯</span>
+                  </div>
+                  <h3 className="heading-3 bg-gradient-to-r from-blueberry-700 to-blueberry-800 bg-clip-text text-transparent mb-4">Make Teaching More Engaging</h3>
+                  <p className="body-text text-neutral-700 leading-relaxed">
+                    Provide tools for creating engaging multimodal topic help content that captures student attention and improves learning outcomes
+                  </p>
+                </div>
+              </div>
+              
+              <div className="animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-200">
+                <div className="bg-white backdrop-blur-sm rounded-2xl p-8 shadow-xl border-2 border-blueberry-200 hover:border-blueberry-300 transition-all duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blueberry-100 to-blueberry-200 rounded-2xl flex items-center justify-center mb-6">
+                    <span className="text-3xl">🤖</span>
+                  </div>
+                  <h3 className="heading-3 bg-gradient-to-r from-blueberry-700 to-blueberry-800 bg-clip-text text-transparent mb-4">Enable Teacher-Student Mentorship</h3>
+                  <p className="body-text text-neutral-700 leading-relaxed">
+                    Automate administrative tasks so teachers can dedicate more time to one-on-one student mentorship and guidance
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Key Features */}
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="animate-on-scroll opacity-0 translate-y-8 transition-all duration-700">
+                <div className="bg-gradient-to-br from-white via-white to-blueberry-25 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border border-blueberry-300 hover:-translate-y-1">
+                  <div className="text-4xl mb-6">📖</div>
+                  <h3 className="heading-3 text-neutral-900 mb-4">Curriculum Help Content</h3>
+                  <p className="body-text text-neutral-700">
+                    AI-powered recommendations for engaging multimodal content that aligns with your curriculum
+                  </p>
+                </div>
+              </div>
+              
+              <div className="animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-100">
+                <div className="bg-gradient-to-br from-white via-white to-blueberry-25 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border border-blueberry-300 hover:-translate-y-1">
+                  <div className="text-4xl mb-6">🏗️</div>
+                  <h3 className="heading-3 text-neutral-900 mb-4">Real-World Projects</h3>
+                  <p className="body-text text-neutral-700">
+                    Industry-relevant project recommendations that give students practical experience and portfolio-worthy work
+                  </p>
+                </div>
+              </div>
+              
+              <div className="animate-on-scroll opacity-0 translate-y-8 transition-all duration-700 delay-200">
+                <div className="bg-gradient-to-br from-white via-white to-blueberry-25 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border border-blueberry-300 hover:-translate-y-1">
+                  <div className="text-4xl mb-6">⚡</div>
+                  <h3 className="heading-3 text-neutral-900 mb-4">Automated Attendance</h3>
+                  <p className="body-text text-neutral-700">
+                    Streamline the tedious attendance process with AI-powered automation, freeing up valuable teaching time
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        {/* Target Market Focus */}
+        <section className="py-20 bg-gradient-to-br from-success-25 via-success-50 to-success-100">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="heading-2 bg-gradient-to-r from-success-700 to-success-800 bg-clip-text text-transparent mb-6">Our Focus: State Public Universities</h2>
+              <p className="subtitle text-neutral-700 max-w-3xl mx-auto">
+                Where the unemployability problem is most severe and our impact can be greatest
+              </p>
+            </div>
+            
+            <div className="bg-white backdrop-blur-sm rounded-3xl p-12 shadow-2xl border-2 border-success-300">
+              <div className="grid md:grid-cols-2 gap-12 items-center">
+                <div>
+                  <h3 className="heading-2 bg-gradient-to-r from-success-700 to-success-800 bg-clip-text text-transparent mb-6">Why SPUs Matter</h3>
+                  <div className="space-y-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-success-100 to-success-200 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                        <span className="text-success-600 font-bold text-lg">82%</span>
+                      </div>
+                      <div>
+                        <h4 className="heading-3 text-neutral-900 mb-2">Majority Enrollment</h4>
+                        <p className="body-text text-neutral-700">82% of graduate students are enrolled in State Public Universities</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-success-100 to-success-200 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                        <span className="text-success-600">🎯</span>
+                      </div>
+                      <div>
+                        <h4 className="heading-3 text-neutral-900 mb-2">Greatest Impact</h4>
+                        <p className="body-text text-neutral-700">The unemployability problem is most prevalent in SPUs, making them our primary focus</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-success-100 to-success-200 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                        <span className="text-success-600">📈</span>
+                      </div>
+                      <div>
+                        <h4 className="heading-3 text-neutral-900 mb-2">Scalable Solution</h4>
+                        <p className="body-text text-neutral-700">By solving for SPUs, we can transform education for millions of students across India</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-center">
+                  <div className="bg-gradient-to-br from-success-500 via-success-600 to-success-700 rounded-3xl p-10 text-white shadow-xl">
+                    <div className="heading-1 font-light mb-4">3.28 Cr</div>
+                    <div className="subtitle mb-4">Students in SPUs</div>
+                    <div className="body-text opacity-90">Our target market for maximum impact on graduate employability</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="py-20 bg-gradient-to-br from-blueberry-500 via-blueberry-600 to-blueberry-700">
+          <div className="max-w-6xl mx-auto px-6">
+            <h2 className="heading-2 text-white text-center mb-16">Frequently Asked Questions 💬</h2>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="bg-white/15 backdrop-blur-md rounded-2xl p-8 border border-white/20 shadow-xl">
+                <h3 className="subtitle text-white mb-6 text-center">👩‍🏫 For Teachers</h3>
+                <Accordion type="single" collapsible className="space-y-4">
+                  <AccordionItem value="teacher-1" className="bg-white/10 rounded-xl border border-white/10">
+                    <AccordionTrigger className="text-white px-4 py-3 hover:no-underline">
+                      How does AI help without replacing me?
+                    </AccordionTrigger>
+                    <AccordionContent className="text-white/90 px-4 pb-4">
+                      AI handles routine tasks like attendance and content suggestions, freeing you to focus on teaching and mentoring students personally.
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  <AccordionItem value="teacher-2" className="bg-white/10 rounded-xl border border-white/10">
+                    <AccordionTrigger className="text-white px-4 py-3 hover:no-underline">
+                      Do I need technical training?
+                    </AccordionTrigger>
+                    <AccordionContent className="text-white/90 px-4 pb-4">
+                      No extensive training required. We provide simple tutorials and ongoing support for our intuitive platform.
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+              
+              <div className="bg-white/15 backdrop-blur-md rounded-2xl p-8 border border-white/20 shadow-xl">
+                <h3 className="subtitle text-white mb-6 text-center">👨‍🎓 For Students</h3>
+                <Accordion type="single" collapsible className="space-y-4">
+                  <AccordionItem value="student-1" className="bg-white/10 rounded-xl border border-white/10">
+                    <AccordionTrigger className="text-white px-4 py-3 hover:no-underline">
+                      What kind of projects will I work on?
+                    </AccordionTrigger>
+                    <AccordionContent className="text-white/90 px-4 pb-4">
+                      Industry-relevant projects based on real business challenges that build your portfolio and practical skills.
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  <AccordionItem value="student-2" className="bg-white/10 rounded-xl border border-white/10">
+                    <AccordionTrigger className="text-white px-4 py-3 hover:no-underline">
+                      Will this replace my professors?
+                    </AccordionTrigger>
+                    <AccordionContent className="text-white/90 px-4 pb-4">
+                      No, it enhances your professor's ability to guide you by providing 24/7 support while they focus on mentorship.
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+              
+              <div className="bg-white/15 backdrop-blur-md rounded-2xl p-8 border border-white/20 shadow-xl md:col-span-2 lg:col-span-1">
+                <h3 className="subtitle text-white mb-6 text-center">🏫 For Institutions</h3>
+                <Accordion type="single" collapsible className="space-y-4">
+                  <AccordionItem value="institution-1" className="bg-white/10 rounded-xl border border-white/10">
+                    <AccordionTrigger className="text-white px-4 py-3 hover:no-underline">
+                      How much does it cost?
+                    </AccordionTrigger>
+                    <AccordionContent className="text-white/90 px-4 pb-4">
+                      Free during beta. Post-beta pricing will be per-user, paid by institutions for maximum student benefit.
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  <AccordionItem value="institution-2" className="bg-white/10 rounded-xl border border-white/10">
+                    <AccordionTrigger className="text-white px-4 py-3 hover:no-underline">
+                      What are the technical requirements?
+                    </AccordionTrigger>
+                    <AccordionContent className="text-white/90 px-4 pb-4">
+                      Just internet access and a web browser. Works on any device - no special software or hardware required.
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-20 bg-neutral-900">
+          <div className="max-w-4xl mx-auto px-6 text-center">
+            <h2 className="heading-2 bg-gradient-to-r from-white to-neutral-200 bg-clip-text text-transparent mb-6">Transform Education. Empower Humanity.</h2>
+            <p className="subtitle text-neutral-300 mb-12">
+              Join the movement to make 95% of graduates employable through AI-enhanced teaching
+            </p>
+            <Link href="/login">
+              <button className="bg-gradient-to-r from-blueberry-500 via-blueberry-600 to-blueberry-700 hover:from-blueberry-600 hover:via-blueberry-700 hover:to-blueberry-800 text-white px-12 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:-translate-y-1">
+                Get Started Today
+              </button>
+            </Link>
+          </div>
+        </section>
       </div>
-
-      <div className="hero">
-        <div className="header">
-          <h1 className="logo" style={{ fontSize: '6em' }}>👩🏼‍🏫</h1>
-          <h1 className="logo">Smart Teacher&apos;s Assistant</h1>
-        </div>
-
-        <div className="problem-section">
-          <h2 className="problem-title">49% of Indian Graduates are UNEMPLOYABLE</h2>
-          <p className="problem-subtitle">Half of all college graduates struggle to find employment due to lack of industry skills, practical experience, and proper guidance.</p>
-          
-          <div className="stats">
-            <div className="stat-card">
-              <span className="stat-number">57%</span>
-              <span className="stat-text">Report difficulties in collaborative learning</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-number">45%</span>
-              <span className="stat-text">Students experience higher than average stress levels</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-number">28%</span>
-              <span className="stat-text">Struggle to understand course material</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="challenges-section">
-          <div className="container">
-            <h2 className="challenges-title">Why Are Students Struggling? 🤔</h2>
-            <p className="challenges-subtitle">The root causes behind the employability crisis</p>
-            
-            <div className="challenges-grid">
-              <div className="challenge-card">
-                <span className="challenge-icon">📊</span>
-                <h3 className="challenge-title">Teachers Lack Industry Updates</h3>
-                <p className="challenge-description">Faculty aren&apos;t equipped with current industry trends and technologies, creating a gap between classroom learning and real-world requirements.</p>
-              </div>
-              
-              <div className="challenge-card">
-                <span className="challenge-icon">🧭</span>
-                <h3 className="challenge-title">Lack of 1-1 Teacher-Student Mentorship</h3>
-                <p className="challenge-description">Students struggle without personalized guidance and mentorship. Large class sizes prevent meaningful individual attention and career direction.</p>
-              </div>
-              
-              <div className="challenge-card">
-                <span className="challenge-icon">🔄</span>
-                <h3 className="challenge-title">Mundane, Disconnected Projects</h3>
-                <p className="challenge-description">Students work on repetitive, theoretical projects with no real-world connection, missing opportunities to build practical, portfolio-worthy experience.</p>
-              </div>
-              
-              <div className="challenge-card">
-                <span className="challenge-icon">😴</span>
-                <h3 className="challenge-title">Theory-Heavy Teaching is Boring</h3>
-                <p className="challenge-description">Traditional lecture-based learning fails to engage students, leading to disinterest and poor retention of important concepts and skills.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="solution-section">
-          <h2 className="solution-title">AI-Powered Solution for Real Impact</h2>
-          <div className="features">
-            <div className="feature-card">
-              <span className="feature-icon">⚡</span>
-              <h3 className="feature-title">Automated Admin Work</h3>
-              <p className="feature-description">Streamline mundane tasks like attendance capture with image recognition and automatic Excel sheet generation. Free up teachers&apos; time to focus on what matters most - teaching.</p>
-            </div>
-            
-            <div className="feature-card">
-              <span className="feature-icon">🎯</span>
-              <h3 className="feature-title">Real-World Problem Solving</h3>
-              <p className="feature-description">Enhance practical learning by connecting students with industry-relevant problem statements. Bridge the gap between classroom theory and workplace reality.</p>
-            </div>
-            
-            <div className="feature-card">
-              <span className="feature-icon">🤖</span>
-              <h3 className="feature-title">Autonomous Teacher Assistant</h3>
-              <p className="feature-description">Context-aware AI that aids in project planning, conducts regular weekly check-ins with students, and prepares detailed progress summaries for teachers.</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="cta-section">
-          <h2 className="cta-title">Transform Education. Empower Students.</h2>
-          <p className="cta-subtitle">Join the movement to achieve 95% graduate employability through AI-enhanced teaching</p>
-          <Link href="/login" passHref>
-            <button className="cta-button">Get Started Today</button>
-          </Link>
-        </div>
-
-        <div className="faq-section">
-          <div className="container">
-            <h2 className="faq-title">Frequently Asked Questions 💬</h2>
-            
-            <div className="faq-categories">
-              <div className="faq-category">
-                <h3 className="category-title">👩‍🏫 For Teachers</h3>
-                <Accordion type="single" collapsible className="faq-items">
-                  <AccordionItem value="teacher-item-1" className="faq-item">
-                    <AccordionTrigger className="faq-question">How does the AI assistant help with my daily workload without replacing me?</AccordionTrigger>
-                    <AccordionContent className="faq-answer">The AI handles routine tasks like attendance tracking, report generation, and project suggestions, freeing you to focus on teaching and mentoring. You remain the central figure in education while AI amplifies your impact.</AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="teacher-item-2" className="faq-item">
-                    <AccordionTrigger className="faq-question">Will I need technical training to use the platform?</AccordionTrigger>
-                    <AccordionContent className="faq-answer">No extensive training required. The platform is designed with an intuitive interface. We provide simple onboarding tutorials and ongoing support to get you started quickly.</AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="teacher-item-3" className="faq-item">
-                    <AccordionTrigger className="faq-question">How does the system track student progress and generate reports?</AccordionTrigger>
-                    <AccordionContent className="faq-answer">The AI conducts weekly check-ins with students, monitors project milestones, and automatically generates comprehensive progress summaries for your review, saving hours of manual tracking.</AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="teacher-item-4" className="faq-item">
-                    <AccordionTrigger className="faq-question">Can the AI suggest projects that match my curriculum requirements?</AccordionTrigger>
-                    <AccordionContent className="faq-answer">Yes, the AI analyzes your curriculum and suggests industry-relevant projects that align with your learning objectives while building practical skills students need for employment.</AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="teacher-item-5" className="faq-item">
-                    <AccordionTrigger className="faq-question">How does the attendance capture with image recognition work?</AccordionTrigger>
-                    <AccordionContent className="faq-answer">Simply take the picture of your attendance register and AI automatically generates a digital version of the register saving you the time needed to convert the register data to digital excel data.</AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="teacher-item-6" className="faq-item">
-                    <AccordionTrigger className="faq-question">Will this platform integrate with my existing grading systems?</AccordionTrigger>
-                    <AccordionContent className="faq-answer">Yes, we&apos;re designed to work alongside existing systems. Data can be exported to most common formats and integrated with popular learning management systems.</AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              </div>
-              
-              <div className="faq-category">
-                <h3 className="category-title">👨‍🎓 For Students</h3>
-                <Accordion type="single" collapsible className="faq-items">
-                  <AccordionItem value="student-item-1" className="faq-item">
-                    <AccordionTrigger className="faq-question">What kind of real-world projects will I work on?</AccordionTrigger>
-                    <AccordionContent className="faq-answer">Industry-relevant projects based on actual business challenges, from app development and data analysis to marketing campaigns and research studies that build your portfolio.</AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="student-item-2" className="faq-item">
-                    <AccordionTrigger className="faq-question">How often will I get feedback and check-ins?</AccordionTrigger>
-                    <AccordionContent className="faq-answer">The AI assistant conducts weekly check-ins to track your progress, provide guidance, and identify any roadblocks. Your teacher receives detailed summaries to provide additional support when needed.</AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="student-item-3" className="faq-item">
-                    <AccordionTrigger className="faq-question">Will this replace my professors or work alongside them?</AccordionTrigger>
-                    <AccordionContent className="faq-answer">The platform enhances your professor&apos;s ability to guide you. It provides 24/7 support for project questions while your professor focuses on deeper learning and career mentorship.</AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="student-item-4" className="faq-item">
-                    <AccordionTrigger className="faq-question">What happens to my project data and progress reports?</AccordionTrigger>
-                    <AccordionContent className="faq-answer">Your data belongs to you. All project work and progress reports can be exported for your portfolio. We maintain strict privacy standards and never share your information without consent.</AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              </div>
-              
-              <div className="faq-category">
-                <h3 className="category-title">🤝 For Both</h3>
-                <Accordion type="single" collapsible className="faq-items">
-                  <AccordionItem value="both-item-1" className="faq-item">
-                    <AccordionTrigger className="faq-question">How much does the platform cost?</AccordionTrigger>
-                    <AccordionContent className="faq-answer">The platform is free when in Beta. Once out of beta, the pricing will be based on per user account basis. Your college will pay for it.</AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="both-item-2" className="faq-item">
-                    <AccordionTrigger className="faq-question">What technical requirements do I need to use Project Apollo?</AccordionTrigger>
-                    <AccordionContent className="faq-answer">Just a smartphone or computer with internet access. The platform works on any modern web browser - no special software or hardware required.</AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="both-item-3" className="faq-item">
-                    <AccordionTrigger className="faq-question">How does the platform ensure data privacy and security?</AccordionTrigger>
-                    <AccordionContent className="faq-answer">We use enterprise-grade encryption and follow strict data protection protocols. Your personal information and academic data are secure and never shared with third parties.</AccordionContent>
-                  </AccordionItem>
-                  
-                  <AccordionItem value="both-item-4" className="faq-item">
-                    <AccordionTrigger className="faq-question">What kind of support is available if I have issues?</AccordionTrigger>
-                    <AccordionContent className="faq-answer">We provide 24/7 technical support via chat, email, and phone. Plus dedicated onboarding assistance and regular training sessions to ensure smooth usage.</AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="cta-section">
-          <h2 className="cta-title">Transform Education. Empower Students.</h2>
-          <p className="cta-subtitle">Join the movement to achieve 95% graduate employability through AI-enhanced teaching</p>
-          <Link href="/login" passHref>
-            <button className="cta-button">Get Started Today</button>
-          </Link>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }

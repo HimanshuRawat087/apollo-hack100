@@ -19,3 +19,13 @@ export interface ProjectReport {
   textStatus: string; // student's textual description of the status
   studentProjectStatus: 'on-track' | 'off-track'; // Changed from rating
 }
+
+export interface Question {
+  id:string;
+  title: string;
+  helpText: string;
+  isInstruction?: boolean;
+  position: number;
+  minLength?: number;
+  maxLength?: number;
+}

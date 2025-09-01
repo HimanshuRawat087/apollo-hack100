@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Bot, X, FileImage, Download } from 'lucide-react';
+import { Upload, Bot, X, FileImage, Download, CheckCircle, AlertCircle, Sparkles, Eye, Trash2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { storage, app } from '../../../../lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -7,6 +7,10 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { attendanceExtractionPrompt } from './prompt';
 import { calculateAttendanceSummary } from './utils/attendanceCalculation';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -28,7 +32,7 @@ const AttendanceExtractor = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [isBlinking, setIsBlinking] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const resultsEndRef = useRef(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,14 +47,6 @@ const AttendanceExtractor = () => {
   useEffect(() => {
     scrollToBottom();
   }, [results]);
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setIsBlinking(prev => !prev);
-    }, 500);
-
-    return () => clearInterval(intervalId);
-  }, []);
 
   const handleImageSelect = (file: File) => {
     if (file && file.type.startsWith('image/')) {
@@ -93,6 +89,7 @@ const AttendanceExtractor = () => {
   const removeImage = () => {
     setSelectedImage(null);
     setImagePreview(null);
+    setProcessingStatus('idle');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -128,7 +125,7 @@ const AttendanceExtractor = () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        await new Promise(resolve => setTimeout(resolve, 500)); // Small delay to prevent browser blocking
+        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (error) {
         console.error(`Error downloading ${filename}:`, error);
       }
@@ -158,11 +155,10 @@ const AttendanceExtractor = () => {
       .replace(/[\u200B-\u200D\uFEFF]/g, '')
       .replace(/\n/g, ' ')
       .replace(/\s+/g, ' ')
-      .replace(/,\s*([}\]])/g, '$1') // Remove trailing commas
-      .replace(/\"\s*:\s*\"/g, '": "') // Normalize key-value
+      .replace(/,\s*([}\]])/g, '$1')
+      .replace(/\"\s*:\s*\"/g, '": "')
       .trim();
 
-    // Try to auto-close brackets if obviously truncated
     const openBraces = (cleaned.match(/\{/g) || []).length;
     const closeBraces = (cleaned.match(/\}/g) || []).length;
     const openBrackets = (cleaned.match(/\[/g) || []).length;
@@ -176,9 +172,7 @@ const AttendanceExtractor = () => {
   const extractJsonFromString = (text: string) => {
     try {
       let jsonString = text;
-      // Remove all code block markers (```json, ```) globally
       jsonString = jsonString.replace(/```json|```/gi, '');
-      // Remove all lines before the first { or [
       const firstCurly = jsonString.indexOf('{');
       const firstSquare = jsonString.indexOf('[');
       let startIdx = -1;
@@ -190,31 +184,25 @@ const AttendanceExtractor = () => {
       if (startIdx > 0) {
         jsonString = jsonString.slice(startIdx);
       }
-      // Remove all text after the last } or ]
       let lastCurly = jsonString.lastIndexOf('}');
       let lastSquare = jsonString.lastIndexOf(']');
       let endIdx = Math.max(lastCurly, lastSquare);
       if (endIdx !== -1) {
         jsonString = jsonString.slice(0, endIdx + 1);
       }
-      // Remove trailing commas before } or ]
       jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
-      // Auto-close brackets if obviously truncated
       const openBraces = (jsonString.match(/\{/g) || []).length;
       const closeBraces = (jsonString.match(/\}/g) || []).length;
       const openBrackets = (jsonString.match(/\[/g) || []).length;
       const closeBrackets = (jsonString.match(/\]/g) || []).length;
       if (openBraces > closeBraces) jsonString += '}'.repeat(openBraces - closeBraces);
       if (openBrackets > closeBrackets) jsonString += ']'.repeat(openBrackets - closeBrackets);
-      // Remove non-breaking and zero-width spaces
       jsonString = jsonString.replace(/\xA0/g, ' ').replace(/[\u200B-\u200D\uFEFF]/g, '');
-      // Normalize whitespace
       jsonString = jsonString.replace(/\s+/g, ' ');
       let parsed;
       try {
         parsed = JSON.parse(jsonString);
       } catch (e) {
-        // Fallback: try to extract the largest valid JSON substring
         const curlyStart = jsonString.indexOf('{');
         const curlyEnd = jsonString.lastIndexOf('}');
         const squareStart = jsonString.indexOf('[');
@@ -227,11 +215,9 @@ const AttendanceExtractor = () => {
         }
         parsed = JSON.parse(fallback);
       }
-      // Validate the parsed JSON structure
       if (!parsed || typeof parsed !== 'object') {
         throw new Error("Invalid JSON structure: not an object");
       }
-      // Check for any of the supported data structures
       const hasValidStructure = 
         (parsed.employees && Array.isArray(parsed.employees)) ||
         (parsed.attendance_data && Array.isArray(parsed.attendance_data)) ||
@@ -244,49 +230,15 @@ const AttendanceExtractor = () => {
       return parsed;
     } catch (e: unknown) {
       console.error("Could not parse JSON from response:", e);
-      showManualJsonCorrectionBox(text, e instanceof Error ? e.message : 'Unknown error');
       return null;
     }
   };
-
-  // Show a textarea for manual correction if JSON parsing fails
-  function showManualJsonCorrectionBox(rawText: string, errorMsg: string) {
-    const messageBox = document.createElement('div');
-    messageBox.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
-    messageBox.innerHTML = `
-      <div class="bg-white p-6 rounded-lg shadow-xl text-center max-w-2xl w-full">
-        <p class="text-lg font-semibold mb-4 text-red-600">Failed to parse AI response as JSON: ${errorMsg}</p>
-        <p class="text-sm text-gray-700 mb-2">You can manually correct the JSON below and click 'Try Again'.</p>
-        <textarea id="manual-json-textarea" class="w-full h-40 border rounded p-2 mb-4 text-xs" style="font-family:monospace;">${rawText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
-        <div class="flex justify-center space-x-2">
-          <button id="manual-json-try-again" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Try Again</button>
-          <button id="manual-json-cancel" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">Cancel</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(messageBox);
-
-    (document.getElementById('manual-json-cancel') as HTMLButtonElement).onclick = () => {
-      document.body.removeChild(messageBox);
-    };
-    (document.getElementById('manual-json-try-again') as HTMLButtonElement).onclick = () => {
-      const textarea = document.getElementById('manual-json-textarea') as HTMLTextAreaElement;
-      let value = textarea.value;
-      try {
-        const fixed = JSON.parse(value);
-        // Optionally, you could trigger a re-processing here
-        showCustomMessageBox('JSON parsed successfully! Please re-upload the image to process again.', false);
-        document.body.removeChild(messageBox);
-      } catch (err: any) {
-        alert('Still not valid JSON: ' + (err instanceof Error ? err.message : String(err)));
-      }
-    };
-  }
 
   const processImage = async () => {
     if (!selectedImage) return;
 
     setIsLoading(true);
+    setProcessingStatus('processing');
 
     try {
       const base64Image = await convertImageToBase64(selectedImage);
@@ -311,7 +263,6 @@ const AttendanceExtractor = () => {
       const data = await response.json();
       const rawResponseText = data.response;
       const parsedJson = extractJsonFromString(rawResponseText);
-      console.log("Parsed JSON data:", parsedJson); // TEMPORARY DEBUG LOG
 
       setResults(prev => [...prev, {
         id: Date.now(),
@@ -321,7 +272,11 @@ const AttendanceExtractor = () => {
         parsedData: parsedJson,
         timestamp: new Date().toLocaleString(),
       }]);
-      removeImage();
+      
+      setProcessingStatus('success');
+      setTimeout(() => {
+        removeImage();
+      }, 2000);
     } catch (error) {
       console.error('Error:', error);
       setResults(prev => [...prev, {
@@ -332,15 +287,18 @@ const AttendanceExtractor = () => {
         timestamp: new Date().toLocaleString(),
         error: true,
       }]);
+      setProcessingStatus('error');
     } finally {
       setIsLoading(false);
+      setTimeout(() => {
+        setProcessingStatus('idle');
+      }, 3000);
     }
   };
 
   const downloadJSON = (result: AttendanceResult) => {
     const dataToDownload = result.parsedData || extractJsonFromString(result.rawResponse);
     if (!dataToDownload) {
-      showCustomMessageBox("No valid JSON data to download.");
       return;
     }
     const dataStr = JSON.stringify(dataToDownload, null, 2);
@@ -356,14 +314,11 @@ const AttendanceExtractor = () => {
 
   const downloadExcel = async (result: AttendanceResult) => {
     const dataToProcess = result.parsedData || extractJsonFromString(result.rawResponse);
-    console.log("Data for Excel processing:", dataToProcess);
     if (!dataToProcess) {
-      showCustomMessageBox("No valid data to process for Excel generation.", true);
       return;
     }
     let flattenedData = [];
     let exportFileDefaultName = `attendance_${result.imageName.split('.')[0]}_${Date.now()}.xlsx`;
-    // Determine the correct data array based on the parsed JSON structure
     let attendanceRecords = null;
     const possibleArrays = [
       dataToProcess.attendance_data,
@@ -374,11 +329,9 @@ const AttendanceExtractor = () => {
     ];
     attendanceRecords = possibleArrays.find(arr => Array.isArray(arr) && arr.length > 0);
     if (!attendanceRecords) {
-      showCustomMessageBox("No valid attendance entries found in the extracted data.", true);
       return;
     }
     try {
-      // Process data based on identified structure
       if (attendanceRecords[0]?.student_name !== undefined && attendanceRecords[0]?.status !== undefined) {
         flattenedData = attendanceRecords.map((record: any) => ({
           "Name": record.student_name || '',
@@ -422,11 +375,8 @@ const AttendanceExtractor = () => {
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Attendance");
 
-      // --- New: Attendance Sorting Tab ---
-      // Only add if attendanceRecords have attendance object (multi-day)
       if (attendanceRecords[0]?.attendance !== undefined) {
         const summary = calculateAttendanceSummary(attendanceRecords);
-        // Sort by attendancePercent (lowest to highest), blanks at the end
         const sortedSummary = summary.slice().sort((a, b) => {
           if (a.attendancePercent === '' && b.attendancePercent === '') return 0;
           if (a.attendancePercent === '') return 1;
@@ -441,14 +391,13 @@ const AttendanceExtractor = () => {
         }));
         const sortingWs = XLSX.utils.json_to_sheet(sortingData);
         sortingWs['!cols'] = [
-          { wch: 20 }, // Student name
-          { wch: 14 }, // Total Present
-          { wch: 13 }, // Total Absent
-          { wch: 15 }, // Attendance %
+          { wch: 20 },
+          { wch: 14 },
+          { wch: 13 },
+          { wch: 15 },
         ];
         XLSX.utils.book_append_sheet(wb, sortingWs, 'attendance sorting');
       }
-      // --- End New ---
 
       if (dataToProcess.legend) {
         const legendData = Object.entries(dataToProcess.legend).map(([code, meaning]) => ({
@@ -473,7 +422,6 @@ const AttendanceExtractor = () => {
           const storageRef = ref(storage, `excel_sheets/${exportFileDefaultName}`);
           const snapshot = await uploadBytes(storageRef, excelBlob);
           const storageLink = await getDownloadURL(snapshot.ref);
-          showCustomMessageBox("Excel file downloaded and uploaded to Firebase Storage!");
           const currentUser = auth.currentUser;
           if (currentUser) {
             await addDoc(collection(db, 'Attendance-records'), {
@@ -486,178 +434,379 @@ const AttendanceExtractor = () => {
           }
         } catch (uploadError: any) {
           console.error('Error uploading to Firebase Storage:', uploadError);
-          showCustomMessageBox(`Excel file downloaded, but there was an error uploading to Firebase Storage: ${uploadError.message}`);
         }
       }
     } catch (error: any) {
       console.error('Error creating Excel file:', error);
-      showCustomMessageBox(`Failed to generate Excel file: ${error.message}`, true);
     }
   };
 
-  const showCustomMessageBox = (message, isError = false) => {
-    const messageBox = document.createElement('div');
-    messageBox.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
-    messageBox.innerHTML = `
-      <div class="bg-white p-6 rounded-lg shadow-xl text-center">
-        <p class="text-lg font-semibold mb-4 ${isError ? 'text-red-600' : 'text-gray-800'}">${message}</p>
-        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" onclick="this.parentElement.parentElement.remove()">OK</button>
-      </div>
-    `;
-    document.body.appendChild(messageBox);
+  const getProcessButtonVariant = () => {
+    switch (processingStatus) {
+      case 'success':
+        return 'success' as const;
+      case 'error':
+        return 'destructive' as const;
+      default:
+        return 'gradient' as const;
+    }
   };
 
+  const getProcessButtonText = () => {
+    switch (processingStatus) {
+      case 'processing':
+        return 'Extracting Attendance Data...';
+      case 'success':
+        return 'Data Extracted Successfully!';
+      case 'error':
+        return 'Extraction Failed - Try Again';
+      default:
+        return 'Extract Attendance Data';
+    }
+  };
+
+  const removeResult = (id: number) => {
+    setResults(prev => prev.filter(result => result.id !== id));
+  };
 
   return (
-    <div className="flex flex-col h-screen max-w-6xl mx-auto bg-gray-50 font-sans">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b p-4 rounded-b-lg">
-        <div className="flex items-center space-x-2">
-          <Bot className="w-6 h-6 text-blue-600" />
-          <h1 className="text-xl font-semibold text-gray-800">Attendance Register Extractor</h1>
-        </div>
-        <p className="text-sm text-gray-600 mt-1">Upload attendance register images to extract structured data</p>
-      </div>
-
+    <div className="flex flex-col h-screen max-w-7xl mx-auto bg-neutral-50 dark:bg-neutral-900">
       {/* Main Content */}
-      <div className="flex-1 flex">
+      <div className="flex-1 flex gap-6 p-6">
         {/* Upload Section */}
-        <div className="w-1/3 bg-white border-r p-4 rounded-bl-lg">
-          <h2 className="text-lg font-medium text-gray-800 mb-4">Upload Image</h2>
-
-          {/* Drag and Drop Area */}
-          <div
-            className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-              dragActive
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-300 hover:border-gray-400'
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            {imagePreview ? (
-              <div className="relative">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="max-w-full max-h-48 mx-auto rounded-lg"
-                />
-                <button
-                  onClick={removeImage}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-                <p className="text-sm text-gray-600 mt-2">{selectedImage?.name}</p>
+        <div className="w-1/3 space-y-6">
+          <Card variant="elevated" className="hover:shadow-xl transition-shadow duration-300">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blueberry-100 dark:bg-blueberry-900 rounded-lg flex items-center justify-center">
+                  <Upload size={20} className="text-blueberry-600 dark:text-blueberry-400" />
+                </div>
+                <CardTitle className="text-blueberry-700 dark:text-blueberry-300">Upload Image</CardTitle>
               </div>
-            ) : (
-              <div>
-                <FileImage className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-2">Drag and drop an image here, or</p>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Upload className="w-4 h-4 inline mr-2" />
-                  Choose File
-                </button>
-                <button
-                  onClick={handleDownloadAllSampleImages}
-                  className={`mt-4 px-4 py-2 rounded-lg transition-colors flex items-center justify-center text-white ${
-                    isBlinking ? 'bg-red-700' : 'bg-red-500'
-                  } hover:bg-red-600`}
-                >
-                  <Download className="w-4 h-4 inline mr-2" />
-                  Download Sample Images
-                </button>
-                <p className="text-xs text-gray-500 mt-2">Supports JPG, PNG, GIF, WebP</p>
+            </CardHeader>
+            <CardContent>
+              {/* Drag and Drop Area */}
+              <div
+                className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${
+                  dragActive
+                    ? 'border-blueberry-500 bg-blueberry-25 dark:bg-blueberry-950 scale-[1.02]'
+                    : 'border-neutral-300 dark:border-neutral-600 hover:border-blueberry-400 dark:hover:border-blueberry-500 hover:bg-blueberry-25 dark:hover:bg-blueberry-950'
+                }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                {imagePreview ? (
+                  <div className="relative">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="max-w-full max-h-48 mx-auto rounded-lg shadow-md"
+                    />
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={removeImage}
+                      className="absolute -top-2 -right-2 rounded-full w-8 h-8 p-0"
+                    >
+                      <X size={16} />
+                    </Button>
+                    <p className="subtitle text-neutral-700 dark:text-neutral-300 mt-3">{selectedImage?.name}</p>
+                    {processingStatus === 'success' && (
+                      <Badge variant="success" size="default" className="mt-2">
+                        <CheckCircle size={14} className="mr-1" />
+                        Ready for Processing
+                      </Badge>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="w-16 h-16 bg-blueberry-100 dark:bg-blueberry-900 rounded-2xl flex items-center justify-center mx-auto">
+                      <FileImage size={32} className="text-blueberry-600 dark:text-blueberry-400" />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="body-text text-neutral-700 dark:text-neutral-300">Drag and drop an image here, or</p>
+                      <Button
+                        variant="outline"
+                        size="default"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-blueberry-300 text-blueberry-700 hover:bg-blueberry-50 dark:border-blueberry-600 dark:text-blueberry-400 dark:hover:bg-blueberry-950"
+                      >
+                        <Upload size={16} className="mr-2" />
+                        Choose File
+                      </Button>
+                    </div>
+                    <p className="body-text text-neutral-500 dark:text-neutral-400 text-sm">Supports JPG, PNG, GIF, WebP</p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileInput}
-            accept="image/*"
-            className="hidden"
-          />
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileInput}
+                accept="image/*"
+                className="hidden"
+              />
 
-          {/* Process Button */}
-          {selectedImage && (
-            <button
-              onClick={processImage}
-              disabled={isLoading}
-              className="w-full mt-4 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Bot className="w-4 h-4 mr-2" />
-                  Extract Attendance Data
-                </>
+              {/* Process Button */}
+              {selectedImage && (
+                <Button
+                  variant={getProcessButtonVariant()}
+                  size="lg"
+                  onClick={processImage}
+                  disabled={isLoading}
+                  loading={isLoading}
+                  className="w-full mt-4 shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  {!isLoading && processingStatus === 'success' && (
+                    <CheckCircle size={18} className="mr-2" />
+                  )}
+                  {!isLoading && processingStatus === 'error' && (
+                    <AlertCircle size={18} className="mr-2" />
+                  )}
+                  {!isLoading && processingStatus === 'idle' && (
+                    <Bot size={18} className="mr-2" />
+                  )}
+                  {getProcessButtonText()}
+                </Button>
               )}
-            </button>
-          )}
+            </CardContent>
+          </Card>
+
+          {/* Sample Images Section */}
+          <Card variant="interactive" className="hover:shadow-xl transition-shadow duration-300">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-warning-100 dark:bg-warning-900 rounded-lg flex items-center justify-center">
+                  <Sparkles size={20} className="text-warning-600 dark:text-warning-400" />
+                </div>
+                <CardTitle className="text-warning-700 dark:text-warning-300">Sample Images</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="body-text text-neutral-600 dark:text-neutral-400 mb-4">
+                Download sample attendance registers to test the extraction feature
+              </p>
+              <Button
+                variant="outline"
+                size="default"
+                onClick={handleDownloadAllSampleImages}
+                className="w-full border-warning-300 text-warning-700 hover:bg-warning-50 dark:border-warning-600 dark:text-warning-400 dark:hover:bg-warning-950"
+              >
+                <Download size={16} className="mr-2" />
+                Download All Samples
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Results Section */}
         <div className="flex-1 flex flex-col">
-          <div className="p-4 bg-white border-b rounded-br-lg">
-            <h2 className="text-lg font-medium text-gray-800">Extracted Data</h2>
-            <p className="text-sm text-gray-600">Results will appear here after processing</p>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {results.length === 0 && (
-              <div className="text-center py-8">
-                <FileImage className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">No results yet. Upload an attendance register to get started.</p>
-              </div>
-            )}
-
-            {results.map((result) => (
-              <div key={result.id} className="bg-white rounded-lg border shadow-sm p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center space-x-2">
-                    <img
-                      src={result.imagePreview}
-                      alt="Processed"
-                      className="w-12 h-12 object-cover rounded border"
-                    />
+          <Card variant="elevated" className="flex-1 flex flex-col">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-success-100 dark:bg-success-900 rounded-lg flex items-center justify-center">
+                    <Eye size={20} className="text-success-600 dark:text-success-400" />
                   </div>
-                  <div className="flex space-x-2">
-                    {result.parsedData && (
-                      <>
-                        <button
-                          onClick={() => downloadJSON(result)}
-                          className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center space-x-1 transition-colors"
-                        >
-                          <Download className="w-3 h-3" />
-                          <span>JSON</span>
-                        </button>
-                        <button
-                          onClick={() => downloadExcel(result)}
-                          className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex items-center space-x-1 transition-colors"
-                        >
-                          <Download className="w-3 h-3" />
-                          <span>Excel</span>
-                        </button>
-                      </>
-                    )}
+                  <div>
+                    <CardTitle className="text-success-700 dark:text-success-300">Extracted Data</CardTitle>
+                    <p className="body-text text-neutral-600 dark:text-neutral-400 text-sm">
+                      Results will appear here after processing
+                    </p>
                   </div>
                 </div>
+                {results.length > 0 && (
+                  <Badge variant="outline-primary" size="default">
+                    {results.length} Result{results.length !== 1 ? 's' : ''}
+                  </Badge>
+                )}
               </div>
-            ))}
+            </CardHeader>
 
-            <div ref={resultsEndRef} />
-          </div>
+            <CardContent className="flex-1 overflow-y-auto space-y-4" noPadding>
+              <div className="p-6">
+                {results.length === 0 && (
+                  <div className="text-center py-16">
+                    <div className="w-24 h-24 bg-neutral-100 dark:bg-neutral-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <FileImage size={48} className="text-neutral-400 dark:text-neutral-500" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="heading-3 text-neutral-900 dark:text-neutral-100">No results yet</h3>
+                      <p className="body-text text-neutral-500 dark:text-neutral-400 max-w-md mx-auto">
+                        Upload an attendance register image to get started with AI-powered data extraction
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {results.map((result) => (
+                  <Card 
+                    key={result.id} 
+                    variant={result.error ? "outlined" : "interactive"} 
+                    className={`group hover:shadow-xl transition-all duration-300 ${
+                      result.error ? 'border-error-300 dark:border-error-600' : 'hover:-translate-y-1'
+                    }`}
+                  >
+                    <CardHeader>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-4">
+                          <div className="relative">
+                            <img
+                              src={result.imagePreview}
+                              alt="Processed"
+                              className="w-16 h-16 object-cover rounded-lg border-2 border-neutral-200 dark:border-neutral-700 shadow-sm"
+                            />
+                            {result.error ? (
+                              <div className="absolute -top-1 -right-1 w-6 h-6 bg-error-500 rounded-full flex items-center justify-center">
+                                <AlertCircle size={12} className="text-white" />
+                              </div>
+                            ) : (
+                              <div className="absolute -top-1 -right-1 w-6 h-6 bg-success-500 rounded-full flex items-center justify-center">
+                                <CheckCircle size={12} className="text-white" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="subtitle text-neutral-900 dark:text-neutral-100 mb-1">
+                              {result.imageName}
+                            </h3>
+                            <div className="flex items-center gap-3">
+                              <Badge 
+                                variant={result.error ? "destructive" : "success"} 
+                                size="sm"
+                              >
+                                {result.error ? 'Processing Failed' : 'Data Extracted'}
+                              </Badge>
+                              <span className="body-text text-neutral-500 dark:text-neutral-400 text-sm">
+                                {result.timestamp}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          {result.parsedData && !result.error && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => downloadJSON(result)}
+                                className="border-blueberry-300 text-blueberry-700 hover:bg-blueberry-50 dark:border-blueberry-600 dark:text-blueberry-400 dark:hover:bg-blueberry-950"
+                              >
+                                <Download size={14} className="mr-1" />
+                                JSON
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => downloadExcel(result)}
+                                className="border-success-300 text-success-700 hover:bg-success-50 dark:border-success-600 dark:text-success-400 dark:hover:bg-success-950"
+                              >
+                                <Download size={14} className="mr-1" />
+                                Excel
+                              </Button>
+                            </>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeResult(result.id)}
+                            className="text-error-600 hover:text-error-700 hover:bg-error-50 dark:text-error-400 dark:hover:bg-error-950"
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+
+                    {result.parsedData && !result.error && (
+                      <CardContent className="pt-0">
+                        <div className="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-4">
+                          <h4 className="subtitle text-neutral-900 dark:text-neutral-100 mb-3">
+                            Extraction Summary
+                          </h4>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {/* Display key metrics from parsed data */}
+                            <div className="text-center">
+                              <div className="heading-3 text-blueberry-600 dark:text-blueberry-400">
+                                {(() => {
+                                  const data = result.parsedData;
+                                  const records = data.attendance_data || data.employees || data.entries || data.students || data.attendance || [];
+                                  return records.length;
+                                })()}
+                              </div>
+                              <div className="body-text text-neutral-600 dark:text-neutral-400 text-sm">Records</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="heading-3 text-success-600 dark:text-success-400">
+                                {(() => {
+                                  const data = result.parsedData;
+                                  const records = data.attendance_data || data.employees || data.entries || data.students || data.attendance || [];
+                                  return records.filter((r: any) => 
+                                    r.status === 'P' || r.status === 'Present' || 
+                                    (r.attendance && Object.values(r.attendance).some((v: any) => v === 'P' || v === 'Present'))
+                                  ).length;
+                                })()}
+                              </div>
+                              <div className="body-text text-neutral-600 dark:text-neutral-400 text-sm">Present</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="heading-3 text-error-600 dark:text-error-400">
+                                {(() => {
+                                  const data = result.parsedData;
+                                  const records = data.attendance_data || data.employees || data.entries || data.students || data.attendance || [];
+                                  return records.filter((r: any) => 
+                                    r.status === 'A' || r.status === 'Absent' || 
+                                    (r.attendance && Object.values(r.attendance).some((v: any) => v === 'A' || v === 'Absent'))
+                                  ).length;
+                                })()}
+                              </div>
+                              <div className="body-text text-neutral-600 dark:text-neutral-400 text-sm">Absent</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="heading-3 text-warning-600 dark:text-warning-400">
+                                {(() => {
+                                  const data = result.parsedData;
+                                  if (data.legend) {
+                                    return Object.keys(data.legend).length;
+                                  }
+                                  return 'N/A';
+                                })()}
+                              </div>
+                              <div className="body-text text-neutral-600 dark:text-neutral-400 text-sm">Legend Items</div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    )}
+
+                    {result.error && (
+                      <CardContent className="pt-0">
+                        <Card variant="ghost" className="bg-error-25 dark:bg-error-950 border-error-200 dark:border-error-700">
+                          <CardContent size="default">
+                            <div className="flex items-start gap-3">
+                              <AlertCircle size={20} className="text-error-600 dark:text-error-400 flex-shrink-0 mt-0.5" />
+                              <div>
+                                <h4 className="subtitle text-error-800 dark:text-error-200 mb-1">Processing Error</h4>
+                                <p className="body-text text-error-700 dark:text-error-300 text-sm leading-relaxed">
+                                  {result.rawResponse}
+                                </p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </CardContent>
+                    )}
+                  </Card>
+                ))}
+
+                <div ref={resultsEndRef} />
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
